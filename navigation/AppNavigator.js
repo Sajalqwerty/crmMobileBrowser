@@ -6,9 +6,9 @@ import CallPopupScreen from '../screens/CallPopupScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 
 const AppNavigator = createStackNavigator({
-    CallPopupScreen : CallPopupScreen,
-    // DashboardScreen : DashboardScreen,
+    DashboardScreen : DashboardScreen,
     LoginScreen : LoginScreen,
+    CallPopupScreen : CallPopupScreen,
     CategoriesScreen : CategoriesScreen,
 });
 
