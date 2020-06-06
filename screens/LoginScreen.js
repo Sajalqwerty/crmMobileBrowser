@@ -1,12 +1,49 @@
 import React, { useState} from 'react';
 import Colors from '../Constants/Colors';
-import { StyleSheet, Text, View, Button, TextInput,Image } from 'react-native';
+import { StyleSheet, Text, View, Button, TextInput,Image,AsyncStorage } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+
+
+const setSessionData = async(data) => {
+    AsyncStorage.setItem('userData',JSON.stringify({
+                 'UserId' : data.Users_Id,
+                 'UserName' : data.Users_Username,
+                 'Email' : data.Users_Email,
+                 'Mobile' : data.Users_Mobile,
+                 'EnterpriseId' : data.Users_EnterpriseId,
+                 'SubEnterpriseId' : data.Users_SubEnterpriseId,
+                 'RoleId' : data.Users_Role,
+                 'Role' : data.AgentsGroup_Role,
+             }));
+}
 
 const LoginScreen = props => {
  
  const [email, setEmail] = useState('');
+ const [password, setPassword] = useState('');
+
+    const LoginByAjax = (email,password) => {
+        console.log('all function');
+        
+        fetch('http://devcc.digialaya.com/CrmMobileBrowser/getAgentDataApi', {
+        body: JSON.stringify({
+            'email' : email,
+            'password' : password,
+        }),
+        method: 'post',
+        async : false,
+        }).then((response) => {
+        return response.json();
+        })
+        .then((jsonObject) => {
+            if(jsonObject['status'] == 'success'){
+                setSessionData(jsonObject['data']);
+                props.navigation.navigate('DashboardScreen');
+                return;
+            }
+        });
+    }
 
     return(
         <View style={styles.screen}>
@@ -30,9 +67,11 @@ const LoginScreen = props => {
           placeholder="Password" 
           secureTextEntry={true} 
           style={styles.textInput}
+          value={password}
+          onChangeText={text => setPassword(text)}
           />
         </View>
-        <Button title="Login" color={Colors.PRIMARY_COLOR} />
+        <Button title="Login" color={Colors.PRIMARY_COLOR} onPress={() => {LoginByAjax(email,password)}} />
         </View>
 
     );

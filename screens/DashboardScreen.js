@@ -4,25 +4,62 @@ import Colors from '../Constants/Colors';
 
 const DashboardScreen = props => {
 
-const dataList = [{'Total Calls' : 1},{'Accepted' : 1}];
+  let websocket = new WebSocket("ws://180.179.210.49:6789/");
+  let mySession = {"EntId": 1, "SubEntId":0, "SocketId": "", "AgentId": 1, "AgentExtension" :  '8077140282',"Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
+  let data = { action: 'LOGIN', AnAgent: mySession };
+  let currentStatus = 'AVAILABLE';
+  try{
+    console.log('send');
+    websocket.send(JSON.stringify(data))
+  }
+  catch(e){
+    console.log('sendnow');
+    websocket.onopen = () => websocket.send(JSON.stringify(data));
+  }
+
+  websocket.onmessage = function (event) {
+    console.log('connected');
+  }
 
 
-const renderItem = () => {dataList.map((value, index) => {
-    console.log(value)
-     return (
-              <View style={styles.items}>
-                  <Text  style={styles.itemstext}>{Object.keys(value)[0]}</Text>
-              </View>
-     );
-});
-};
 return (
     <View style = {styles.screen}>
-    <FlatList 
-    data={dataList}
-    renderItem = {renderItem}
-    keyExtractor = {(item, index) => item.toString()}
-     />
+    <View style={styles.tile}>
+    <Text>Total Calls</Text>
+    </View>
+    <View style={styles.tile}>
+    <Text>0</Text>
+    </View>
+    <View style={styles.tile}>
+    <Text>Accepted</Text>
+    </View>
+    <View style={styles.tile}>
+    <Text>0</Text>
+    </View>
+    <View style={styles.tile}>
+    <Text>Rejected</Text>
+    </View>
+    <View style={styles.tile}>
+    <Text>0</Text>
+    </View>
+    <View style={styles.tile}>
+    <Text>Login Time</Text>
+    </View>
+    <View style={styles.tile}>
+    <Text>00/00/0000 00:00</Text>
+    </View>
+    <View style={styles.tile}>
+    <Text>Avtt</Text>
+    </View>
+    <View style={styles.tile}>
+    <Text>0</Text>
+    </View>
+    <View style={styles.tile}>
+    <Text>Maxtt</Text>
+    </View>
+    <View style={styles.tile}>
+    <Text>0</Text>
+    </View>
     </View>
 
     // <View style = {styles.screen}><Text>This is DashboardScreen</Text></View>
@@ -37,7 +74,7 @@ const styles = StyleSheet.create({
     },
     parentitems:{
     },
-    items : {
+    tile : {
         backgroundColor : Colors.DANGER_COLOR,
         alignItems: 'center',
         justifyContent : 'center',
