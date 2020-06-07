@@ -9,12 +9,12 @@ import ProgressFormScreen from '../screens/ProgressFormScreen';
 import StartUpScreen from '../screens/StartUpScreen';
 
 const AppNavigator = createStackNavigator({
-    DashboardScreen : DashboardScreen,
-    LeadFormScreen : LeadFormScreen,
     StartUpScreen : StartUpScreen,
-    LoginScreen : LoginScreen,
-    ProgressFormScreen : ProgressFormScreen,
     CallPopupScreen : CallPopupScreen,
+    DashboardScreen : DashboardScreen,
+    ProgressFormScreen : ProgressFormScreen,
+    LoginScreen : LoginScreen,
+    LeadFormScreen : LeadFormScreen,
     CategoriesScreen : CategoriesScreen,
 });
 

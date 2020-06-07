@@ -12,7 +12,7 @@ const tryLogin = async () => {
         return;
     }
     else{
-        props.navigation.navigate('CallPopupScreen');
+        props.navigation.navigate('DashboardScreen');
         return;
     }
 }

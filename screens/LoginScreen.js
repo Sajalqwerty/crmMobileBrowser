@@ -1,6 +1,6 @@
 import React, { useState} from 'react';
 import Colors from '../Constants/Colors';
-import { StyleSheet, Text, View, Button, TextInput,Image,AsyncStorage } from 'react-native';
+import { StyleSheet, Text, View, Button, TextInput,Image,AsyncStorage,Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 
@@ -41,6 +41,9 @@ const LoginScreen = props => {
                 setSessionData(jsonObject['data']);
                 props.navigation.navigate('DashboardScreen');
                 return;
+            }
+            else{
+                Alert.alert('Error','Invalid EmailId or Password');
             }
         });
     }

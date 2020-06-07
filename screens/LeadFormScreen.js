@@ -1,11 +1,23 @@
 import React,{useState} from 'react';
 import { StyleSheet, Text, View,TextInput,Button,ScrollView } from 'react-native';
 import Colors from '../Constants/Colors';
+import DropDownPicker from 'react-native-dropdown-picker';
+
+const changeCampaign = (campaign) => {
+ console.log(campaign);
+}
 
 
 const LeadFormScreen = props => {
 
+const country = 'uk';
+const fetchCampaign = [
+                {label: 'UK', value: 'uk'},
+                {label: 'France', value: 'france'},
+         ];
+
 const [fname, setFname] = useState('');
+const [campaign, setCampaign] = useState('');
 const [lname, setLname] = useState('');
 const [email, setEmail] = useState('');
 const [description, setDescription] = useState('');
@@ -14,6 +26,19 @@ const [status, setStatus] = useState('');
 
 return (
     <ScrollView style = {styles.screen}>
+        <View >
+         <DropDownPicker
+         items={fetchCampaign}
+        defaultValue={country}
+        containerStyle={{height: 50}}
+        style={styles.select}
+        dropDownStyle={{backgroundColor: '#fafafa'}}
+        onChangeItem={item => changeCampaign({
+        country: item.value
+        })}
+        />
+
+        </View>
         <View style={styles.textInputView}>
         <TextInput 
           placeholder="First Name"
@@ -114,6 +139,10 @@ const styles = StyleSheet.create({
         marginVertical: 12,
         borderRadius: 10
     },
+    select : {
+      width : "95%",
+      backgroundColor : '#fff'
+    }
 });
 
 
