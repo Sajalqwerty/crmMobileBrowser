@@ -26,7 +26,7 @@ const LoginScreen = props => {
     const LoginByAjax = (email,password) => {
         console.log('all function');
         
-        fetch('http://devcc.digialaya.com/CrmMobileBrowser/getAgentDataApi', {
+        fetch('http://devcc.digialaya.com/WebServices/getAgentDataApi', {
         body: JSON.stringify({
             'email' : email,
             'password' : password,

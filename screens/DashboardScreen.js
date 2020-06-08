@@ -1,16 +1,16 @@
-import React,{useState} from 'react';
+import React,{useState,useEffect} from 'react';
 import { StyleSheet, Text, View, Alert,AsyncStorage,ScrollView,Button } from 'react-native';
 import Colors from '../Constants/Colors';
-
 
 const DashboardScreen = props => {
 
   const [SessionData, setSessionData] = useState([]);
-    console.log('here')
+  const [showBreakButton, setShowBreakButton] = useState(true);
+
   const getSessionData = async () => {
     const userData = await AsyncStorage.getItem('userData');
     if(userData){
-      setSessionData(userData);
+      setSessionData(JSON.parse(userData));
     }
     else{
       console.log('Session Time Out Please Retry App');
@@ -19,73 +19,107 @@ const DashboardScreen = props => {
   }
   getSessionData();
 
-  const Logout = () => {
-    AsyncStorage.removeItem('userData');
-    props.navigation.navigate('LoginScreen');
-  }
-  
+  const [websocket, setWebsocket] = useState({});
 
-  let websocket = new WebSocket("ws://180.179.210.49:6789/");
-  let mySession = {"EntId": SessionData.EnterpriseId, "SubEntId":SessionData.SubEnterpriseId, "SocketId": "", "AgentId": SessionData.UserId, "AgentExtension" :  SessionData.Mobile,"Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
-  let data = { action: 'LOGIN', AnAgent: mySession };
-  let currentStatus = 'AVAILABLE';
-  try{
-    websocket.send(JSON.stringify(data))
-  }
-  catch(e){
-    websocket.onopen = () => websocket.send(JSON.stringify(data));
-  }
+  const checkSocketConnection = async() => {
+    let socketdata = await AsyncStorage.getItem('websocket');
 
-  // let mySessiondata =  {"EntId": SessionData.EnterpriseId, "SubEntId":SessionData.SubEnterpriseId, "SocketId": "", "AgentId": SessionData.UserId, "AgentExtension" :  SessionData.Mobile,"Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] }
-  // let res = {'action':'AGENTSESSIONDATA', 'AnAgent': mySessiondata };
-  // websocket.send(JSON.stringify(res));
-
-  websocket.onmessage = function (event) {
-    try
+    if(!socketdata)
     {
-      let response = JSON.parse(event.data);
-      if('ReqAction' in response && response.ReqAction == "CALL_OFFER")
-      {
-        props.navigation.navigate('CallPopupScreen');
-      }
-      else if('ProgressAction' in response && response.ProgressAction == 'AVAILABLE')
-      {
-        let mySession =  {"EntId": 1, "SubEntId":0, "SocketId": "", "AgentId": 1, "AgentExtension" :  "8077140282","Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] }
-
-        let res = {'action':'AGENTSESSIONDATA', 'AnAgent': mySession };
-
-         websocket.send(JSON.stringify(res));
-      }
-      if(response.Status == "AVAILABLE" && typeof response.SessionDetails === 'object')
-      {
-        console.log('agent session data')
-        // $('#LeadGenrationFormDiv').addClass('hidden');
-        // $('#AddProgressFormDiv').addClass('hidden');
-        // $('#TotalCalls').html(response.SessionDetails.TotalCalls);
-        // $('#TotalAccepted').html(response.SessionDetails.Accepted);
-        // $('#TotalRejected').html(response.SessionDetails.Rejected);
-        // var parts = response.logintime.split(/[- :]/);
-        // var date = `${parts[2]}/${parts[1]}/${parts[0]}`;
-        // var time = `${parts[3]}:${parts[4]}`
-        // $('#LoginDate').html(date);
-        // $('#LoginTime').html(time);
-        // $('#Avtt').html(response.SessionDetails.AvTT);
-        // $('#Maxtt').html(response.SessionDetails.MaxTT);
-        // $('#Timer').html('');
-        // clearInterval(refreshIntervalId);
-        // totalSeconds = 0;
+      setWebsocket(new WebSocket("ws://180.179.210.49:6789/"));
+      console.log(websocket);
+      if(Object.keys(websocket).length === 0 && websocket.constructor === Object){
+        Alert.alert('Error','Voice Socket Not Connected');
+        return false;
       }
 
-    } 
-    catch(e){
-      console.log(e)
-      Alert.alert(e)
+      // let mySession = {"EntId": SessionData.EnterpriseId, "SubEntId":SessionData.SubEnterpriseId, "SocketId": "", "AgentId": SessionData.UserId, "AgentExtension" :  SessionData.Mobile,"Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
+      // let data = { action: 'LOGIN', AnAgent: mySession };
+      // let currentStatus = 'AVAILABLE';
+
+      // try{
+      //   websocket.send(JSON.stringify(data))
+      // }
+      // catch(e){
+      //   websocket.onopen = () => websocket.send(JSON.stringify(data));
+      // }
+
+      // AsyncStorage.setItem('websocket',websocket);
     }
   }
+  useEffect(() =>{
+    checkSocketConnection();
+  })
+  console.log('here')
+      console.log(websocket);
+
+  //  websocket = new WebSocket("ws://180.179.210.49:6789/");
+  //  console.log('here');
+  //  let mySession = {"EntId": SessionData.EnterpriseId, "SubEntId":SessionData.SubEnterpriseId, "SocketId": "", "AgentId": SessionData.UserId, "AgentExtension" :  SessionData.Mobile,"Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
+  //  let data = { action: 'LOGIN', AnAgent: mySession };
+  //  let currentStatus = 'AVAILABLE';
+
+  //  try{
+  //    websocket.send(JSON.stringify(data))
+  //  }
+  //  catch(e){
+  //    websocket.onopen = () => websocket.send(JSON.stringify(data));
+  //  }
+
+//   const Logout = (SessionData) => {
+//     let mySession = { "SocketId": "", "AgentId": SessionData.UserId, "Status": "LOGUT", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] } ;
+//     let data = { action: 'LOGOUT', AnAgent: mySession };
+//     let currentStatus = 'LOGOUT';
+//     websocket.send(JSON.stringify(data));
+//     AsyncStorage.removeItem('userData');
+//     props.navigation.navigate('LoginScreen');
+//   }
+
+//   const Break = (SessionData) => {
+//     let mySession = { "SocketId": "", "AgentId": SessionData.UserId, "Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
+//     let data = { action: 'STATUSCHANGE', AnAgent: mySession, newstatus: 'BREAK' };
+//     let currentStatus = 'BREAK';
+//     websocket.send(JSON.stringify(data));
+//   }
+
+// if(Object.keys(websocket).length > 0 && websocket.constructor === Object){
+//   let mySessiondata =  {"EntId": SessionData.EnterpriseId, "SubEntId":SessionData.SubEnterpriseId, "SocketId": "", "AgentId": SessionData.UserId, "AgentExtension" :  SessionData.Mobile,"Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] }
+//   let res = {'action':'AGENTSESSIONDATA', 'AnAgent': mySessiondata };
+//   websocket.send(JSON.stringify(res));
+// }
+
+//    websocket.onmessage = function (event) {
+//     try
+//     {
+//       let response = JSON.parse(event.data);
+//       console.log('in on message')
+//       console.log(response);
+//       if('ReqAction' in response && response.ReqAction == "CALL_OFFER")
+//       {
+//         props.navigation.navigate('CallPopupScreen');
+//       }
+//       else if('ProgressAction' in response && response.ProgressAction == 'AVAILABLE')
+//       {
+//         let mySession =  {"EntId": 1, "SubEntId":0, "SocketId": "", "AgentId": 1, "AgentExtension" :  "8077140282","Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] }
+
+//         let res = {'action':'AGENTSESSIONDATA', 'AnAgent': mySession };
+
+//          websocket.send(JSON.stringify(res));
+//       }
+//       if(response.Status == "AVAILABLE" && typeof response.SessionDetails === 'object')
+//       {
+//         console.log('agent session data');
+//       }
+
+//     } 
+//     catch(e){
+//       console.log(e.message)
+//     }
+//   }
 
 
 return (
-  <ScrollView style = {styles.fullscreen}>
+  <ScrollView>
   <View style={styles.screen}>
     <View style={styles.parenttile}>
       <View style={styles.tile}>
@@ -146,10 +180,10 @@ return (
       
     <View style={styles.buttonView} >
       <View style={styles.callingbuttons} >
-      <Button title="Break" color={Colors.DANGER_COLOR}/>
+       <Button title="Break" color={Colors.DANGER_COLOR} onPress={() => Break(SessionData)}/>
       </View>
       <View style={styles.callingbuttons}>
-      <Button title="Logout" color={Colors.DANGER_COLOR} onPress={Logout}/>
+      <Button title="Logout" color={Colors.DANGER_COLOR} onPress={() => Logout(SessionData)}/>
       </View>
     </View>
   
@@ -163,11 +197,8 @@ return (
 
 const styles = StyleSheet.create({
 
-    fullscreen: {
-        backgroundColor : Colors.DARK_COLOR,
-    },
+    
     screen: {
-        backgroundColor : Colors.DARK_COLOR,
         marginTop : "5%",
     },
     parenttile :{

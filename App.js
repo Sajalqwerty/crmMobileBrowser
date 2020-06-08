@@ -14,7 +14,6 @@ const fetchFonts = () => {
 
 export default function App() {
    const [fontLoading,setFontLoading] = useState(false);
-  console.log(fontLoading);
   if(!fontLoading) {
     return (<AppLoading startAsync={fetchFonts} onFinish={() => setFontLoading(true)} />); 
   }
