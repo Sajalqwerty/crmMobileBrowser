@@ -4,11 +4,17 @@ import LoginScreen from '../screens/LoginScreen';
 import CategoriesScreen from '../screens/CategoriesScreen';
 import CallPopupScreen from '../screens/CallPopupScreen';
 import DashboardScreen from '../screens/DashboardScreen';
+import LeadFormScreen from '../screens/LeadFormScreen';
+import ProgressFormScreen from '../screens/ProgressFormScreen';
+import StartUpScreen from '../screens/StartUpScreen';
 
 const AppNavigator = createStackNavigator({
-    DashboardScreen : DashboardScreen,
-    LoginScreen : LoginScreen,
+    StartUpScreen : StartUpScreen,
     CallPopupScreen : CallPopupScreen,
+    DashboardScreen : DashboardScreen,
+    ProgressFormScreen : ProgressFormScreen,
+    LoginScreen : LoginScreen,
+    LeadFormScreen : LeadFormScreen,
     CategoriesScreen : CategoriesScreen,
 });
 

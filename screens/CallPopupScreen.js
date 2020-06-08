@@ -1,9 +1,11 @@
 import React from 'react';
-import { StyleSheet, Text, View,Image,Button } from 'react-native';
+import { StyleSheet, Text, View,Image,Button,AsyncStorage } from 'react-native';
 import Colors from '../Constants/Colors';
 
 
 const CallPopupScreen = props => {
+
+// AsyncStorage.removeItem('userData');
 
 return (
     <View style = {styles.screen}>
