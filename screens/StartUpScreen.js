@@ -6,7 +6,7 @@ const StartUpScreen = props => {
 
 const tryLogin = async () => {
     const userData = await AsyncStorage.getItem('userData');
-    // console.log(userData);
+    console.log(userData);
     if(!userData) {
         props.navigation.navigate('LoginScreen');
         return false;
