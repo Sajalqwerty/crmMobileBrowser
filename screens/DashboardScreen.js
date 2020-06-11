@@ -13,6 +13,7 @@ const changeStatus = (status) =>{
 }
 
 
+
 const DashboardScreen = props => {
 
   const [SessionData, setSessionData] = useState([]);
@@ -29,9 +30,52 @@ const DashboardScreen = props => {
   const [description, setDescription] = useState('');
   const [mobile, setMobile] = useState('');
   const [remarks, setRemarks] = useState('');
+  const [uuid,setuuid ] = useState('');
+  const [callerNum,setCallerNum ] = useState('');
+  const [campaignId,setCampaignId ] = useState('');
+  const [actionTime,setActionTime ] = useState('');
+  const [callingState,setCallingState ] = useState(0);
+
+  const [totalCalls, setTotalCalls] = useState(0);
+  const [accepted, setAccepted] = useState(0);
+  const [rejected, setRejected] = useState(0);
+  const [avtt, setAvtt] = useState(0);
+  const [maxtt, setMaxtt] = useState(0);
+  const [loginDate, setLoginDate] = useState('00/00/0000');
+  const [loginTime, setLoginTime] = useState('00:00');
 
   const campaignName = '';
   const StatusName = '';
+
+
+const CallAccepted = () => {
+    let mySession = {"EntId":SessionData.EnterpriseId,"SubEntId":SessionData.SubEnterpriseId,"CampaignId":campaignId,"CallerNum":callerNum,"AgentSocketId":"", "VoiceSocketId":"","reqid": uuid, "AgentId": SessionData.UserId, "ReqAction" :"CALL_ACCEPTED", "AgentExtension":SessionData.Mobile, "ActionTime" :actionTime,"Status":"CALL_ACCEPTED", "AgentType":"normal", "SessionDetails" : "", "CampaignsIdLinked" : campaignList};
+    let data = { action: 'CALL_ACCEPTED', FreeAgentReq: mySession, newstatus: 'CALL_ACCEPTED'};
+    let currentStatus = data.newstatus;
+    websocket.send(JSON.stringify(data));
+}
+
+const CallRejected = () => {
+  mySession = {"EntId":SessionData.EnterpriseId,"SubEntId":SessionData.SubEnterpriseId,"CampaignId":campaignId,"CallerNum":callerNum,"AgentSocketId":"", "VoiceSocketId":"","reqid": uuid, "AgentId": SessionData.UserId, "ReqAction" :"CALL_REJECTED", "AgentExtension":SessionData.Mobile, "ActionTime" :actionTime,"Status":"CALL_REJECTED", "AgentType":"normal", "SessionDetails" : "", "CampaignsIdLinked" : campaignList};
+  data = { action: 'CALL_REJECTED', FreeAgentReq: mySession, newstatus: 'CALL_REJECTED'};
+  currentStatus = data.newstatus;
+  websocket.send(JSON.stringify(data));
+}
+
+const CallDiscopnnect = () => {
+  let mySession = { "reqid": uuid, "AgentId":SessionData.UserId, "AgentExtension":SessionData.Mobile, "CallerNum":"", "CampaignId":campaignId,"ProgressAction": "CALL_DISCONNECT", "ActionTime":actionTime};
+  let data = { action: 'CALL_DISCONNECT', 'CallProgress': mySession };
+  let currentStatus = 'CALL_DISCONNECT';
+  websocket.send(JSON.stringify(data));
+}
+
+const CallRelease = () => {
+  let mySession = { "reqid": uuid, "AgentId":SessionData.UserId, "AgentExtension":SessionData.UserId, "CallerNum":callerNum, "CampaignId":campaignId,"ProgressAction": "CALL_RELEASED", "ActionTime":actionTime};
+  let res = {'action':'CALL_RELEASED', 'CallProgress': mySession };
+  let currentStatus = "AVAILABLE";
+
+  websocket.send(JSON.stringify(res));
+}
 
   const addLead = () =>{
   fetch('http://devcc.digialaya.com/WebServices/addLeadsApi', {
@@ -43,6 +87,10 @@ const DashboardScreen = props => {
             'UserLast_Name' : lname,
             'User_Email' : email,
             'User_Mobile' : mobile,
+            'AgentName' : SessionData.UserName,
+            'EnterpriseId' : SessionData.EnterpriseId,
+            'SubEnterpriseId' : SessionData.SubEnterpriseId,
+
         }),
         method: 'post',
         async : false,
@@ -69,11 +117,15 @@ const DashboardScreen = props => {
             'UserLast_Name' : lname,
             'User_Email' : email,
             'User_Mobile' : mobile,
+            'AgentName' : SessionData.UserName,
+            'Role' : SessionData.Role,
+            'EnterpriseId' : SessionData.EnterpriseId,
+            'SubEnterpriseId' : SessionData.SubEnterpriseId,
         }),
         method: 'post',
         async : false,
         }).then((response) => {
-        return response.json();
+        return response.json(); 
         })
         .then((jsonObject) => {
             if(jsonObject['status'] == 'success'){
@@ -216,6 +268,10 @@ if(Object.keys(websocket).length > 0 && websocket.constructor === Object){
       if('ReqAction' in response && response.ReqAction == "CALL_OFFER")
       {
         setSocketState(2);
+        setuuid(response.reqid);
+        setCallerNum(response.CallerNum);
+        setCampaignId(response.CampaignId);
+        setActionTime(response.ActionTime);
       }
       if("action" in response &&  response.action == "CALL_HANGUP")
       {
@@ -223,20 +279,31 @@ if(Object.keys(websocket).length > 0 && websocket.constructor === Object){
       }
       else if('ProgressAction' in response && response.ProgressAction == "ON-CALL")
       {
-        console.log('on call');
+        setCallingState(1);
       }
-      else if('ProgressAction' in response && response.ProgressAction == 'AVAILABLE')
+      else if('data' in response && response.data == 'AVAILABLE')
       {
-        let mySession =  {"EntId": 1, "SubEntId":0, "SocketId": "", "AgentId": 1, "AgentExtension" :  "8077140282","Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": campaignList }
-
-        let res = {'action':'AGENTSESSIONDATA', 'AnAgent': mySession };
-
-         websocket.send(JSON.stringify(res));
+        let mySessiondata =  {"EntId": SessionData.EnterpriseId, "SubEntId":SessionData.SubEnterpriseId, "SocketId": "", "AgentId": SessionData.UserId, "AgentExtension" :  SessionData.Mobile,"Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": campaignList }
+        let res = {'action':'AGENTSESSIONDATA', 'AnAgent': mySessiondata };
+        websocket.send(JSON.stringify(res));
       }
       if(response.Status == "AVAILABLE" && typeof response.SessionDetails === 'object')
       {
-        console.log('agent session data');
+        setTotalCalls(response.SessionDetails.TotalCalls);
+        setAccepted(response.SessionDetails.Accepted);
+        setRejected(response.SessionDetails.Rejected);
+        let parts = response.logintime.split(/[- :]/);
+        let date = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        let time = `${parts[3]}:${parts[4]}`
+        setLoginDate(date);
+        setLoginTime(time);
+        setAvtt(response.SessionDetails.AvTT);
+        setMaxtt(response.SessionDetails.MaxTT);
+        $('#Timer').html('');
+        clearInterval(refreshIntervalId);
+        totalSeconds = 0;
       }
+
 
     } 
     catch(e){
@@ -256,7 +323,7 @@ switch(socketState){
       <Text style={styles.itemstext} style={styles.itemstext}>Total Calls</Text>
       </View>
       <View style={styles.tile}>
-      <Text style={styles.itemstext}>0</Text>
+      <Text style={styles.itemstext}>{totalCalls}</Text>
       </View>
     </View>
     <View style={styles.parenttile}>
@@ -264,7 +331,7 @@ switch(socketState){
       <Text style={styles.itemstext}>Accepted</Text>
       </View>
       <View style={styles.tile}>
-      <Text style={styles.itemstext}>0</Text>
+      <Text style={styles.itemstext}>{accepted}</Text>
       </View>
     </View>
     <View style={styles.parenttile}>
@@ -272,7 +339,7 @@ switch(socketState){
       <Text style={styles.itemstext}>Rejected</Text>
       </View>
       <View style={styles.tile}>
-      <Text style={styles.itemstext}>0</Text>
+      <Text style={styles.itemstext}>{rejected}</Text>
       </View>
     </View>
     <View style={styles.parenttile}>
@@ -280,7 +347,7 @@ switch(socketState){
       <Text style={styles.itemstext}>Login Date</Text>
       </View>
       <View style={styles.tile}>
-      <Text style={styles.itemstext}>00/00/0000</Text>
+      <Text style={styles.itemstext}>{loginDate}</Text>
       </View>
     </View>
     <View style={styles.parenttile}>
@@ -288,7 +355,7 @@ switch(socketState){
       <Text style={styles.itemstext}>Login Time</Text>
       </View>
       <View style={styles.tile}>
-      <Text style={styles.itemstext}>00:00</Text>
+      <Text style={styles.itemstext}>{loginTime}</Text>
       </View>
     </View>
     <View style={styles.parenttile}>
@@ -296,7 +363,7 @@ switch(socketState){
       <Text style={styles.itemstext}>Avtt</Text>
       </View>
       <View style={styles.tile}>
-      <Text style={styles.itemstext}>0</Text>
+      <Text style={styles.itemstext}>{avtt}</Text>
       </View>
     </View>
     <View style={styles.parenttile}>
@@ -304,7 +371,7 @@ switch(socketState){
       <Text style={styles.itemstext}>Maxtt</Text>
       </View>
       <View style={styles.tile}>
-      <Text style={styles.itemstext}>0</Text>
+      <Text style={styles.itemstext}>{maxtt}</Text>
       </View>
     </View>
       
@@ -331,14 +398,31 @@ switch(socketState){
     <Text style={styles.callDetailText}>00:00</Text>
     </View>
     <Image style={styles.logoImage} source={{ uri: 'http://devcc.digialaya.com/common/profilePic/callingperson.png' }}/>
-    <View style={styles.buttonView} >
-    <View style={styles.callingbuttons} >
-    <Button title="Accept" color={Colors.SUCCESS_COLOR}/>
-    </View>
-    <View style={styles.callingbuttons}>
-    <Button title="Reject" color={Colors.DANGER_COLOR}/>
-    </View>
-    </View>
+    
+    // switch(callingState){
+    // case 0:
+    // (<View style={styles.buttonView} >
+    // <View style={styles.callingbuttons} >
+    // <Button title="Accept" color={Colors.SUCCESS_COLOR} onPress={CallAccepted}/>
+    // </View>
+    // <View style={styles.callingbuttons}>
+    // <Button title="Reject" color={Colors.DANGER_COLOR} onPress={CallRejected}/>
+    // </View>
+    // </View>)
+    // break;
+    // case 1:
+    // (<View style={styles.Dissconnect} >
+    // <Button title="Dissconnect" color={Colors.SUCCESS_COLOR} onPress={CallDiscopnnect}/>
+    // </View>)
+    // break;
+    // case 2:
+    // (<View style={styles.Dissconnect} >
+    // <Button title="Release" color={Colors.SUCCESS_COLOR} onPress={CallRelease}/>
+    // </View>)
+    // break; 
+    // }
+    
+    
     </View>
     )
   break;
