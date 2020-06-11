@@ -4,26 +4,15 @@ import Colors from '../Constants/Colors';
 import DropDownPicker from 'react-native-dropdown-picker';
 
 
-const changeCampaign = (campaign) => {
- console.log(campaign);
-}
-
-const changeStatus = (status) =>{
- console.log(status);
-}
-
-
-
 const DashboardScreen = props => {
 
   const [SessionData, setSessionData] = useState([]);
   const [campaignList, setCampaignList] = useState([]);
   const [campaign, setCampaign] = useState('');
   const [fetchCampaign, setFetchCampaign] = useState([{label: '-- Select Campaign --', value: ''}]);
-  const [status, setStatus] = useState('');
   const [fetchStatus, setFetchStatus] = useState([{label: '-- Select Status --', value: ''}]);
   const [showBreakButton, setShowBreakButton] = useState(true);
-  const [socketState,setSocketState] = useState(1);
+  const [socketState,setSocketState] = useState(3);
   const [fname, setFname] = useState('');
   const [lname, setLname] = useState('');
   const [email, setEmail] = useState('');
@@ -47,6 +36,16 @@ const DashboardScreen = props => {
   const campaignName = '';
   const StatusName = '';
 
+  const [campaignVal,setCampaignVal] = useState('');
+  const [statusVal,setStatusVal] = useState('');
+
+const changeCampaign = (campaign) => {
+ setCampaignVal(campaign.campaignName);
+}
+
+const changeStatus = (status) =>{
+ setStatusVal(status.StatusName);
+}
 
 const CallAccepted = () => {
     let mySession = {"EntId":SessionData.EnterpriseId,"SubEntId":SessionData.SubEnterpriseId,"CampaignId":campaignId,"CallerNum":callerNum,"AgentSocketId":"", "VoiceSocketId":"","reqid": uuid, "AgentId": SessionData.UserId, "ReqAction" :"CALL_ACCEPTED", "AgentExtension":SessionData.Mobile, "ActionTime" :actionTime,"Status":"CALL_ACCEPTED", "AgentType":"normal", "SessionDetails" : "", "CampaignsIdLinked" : campaignList};
@@ -56,9 +55,9 @@ const CallAccepted = () => {
 }
 
 const CallRejected = () => {
-  mySession = {"EntId":SessionData.EnterpriseId,"SubEntId":SessionData.SubEnterpriseId,"CampaignId":campaignId,"CallerNum":callerNum,"AgentSocketId":"", "VoiceSocketId":"","reqid": uuid, "AgentId": SessionData.UserId, "ReqAction" :"CALL_REJECTED", "AgentExtension":SessionData.Mobile, "ActionTime" :actionTime,"Status":"CALL_REJECTED", "AgentType":"normal", "SessionDetails" : "", "CampaignsIdLinked" : campaignList};
-  data = { action: 'CALL_REJECTED', FreeAgentReq: mySession, newstatus: 'CALL_REJECTED'};
-  currentStatus = data.newstatus;
+  let mySession = {"EntId":SessionData.EnterpriseId,"SubEntId":SessionData.SubEnterpriseId,"CampaignId":campaignId,"CallerNum":callerNum,"AgentSocketId":"", "VoiceSocketId":"","reqid": uuid, "AgentId": SessionData.UserId, "ReqAction" :"CALL_REJECTED", "AgentExtension":SessionData.Mobile, "ActionTime" :actionTime,"Status":"CALL_REJECTED", "AgentType":"normal", "SessionDetails" : "", "CampaignsIdLinked" : campaignList};
+  let data = { action: 'CALL_REJECTED', FreeAgentReq: mySession, newstatus: 'CALL_REJECTED'};
+  let currentStatus = data.newstatus;
   websocket.send(JSON.stringify(data));
 }
 
@@ -78,10 +77,12 @@ const CallRelease = () => {
 }
 
   const addLead = () =>{
+    console.log(statusVal)
+    console.log(campaignVal)
   fetch('http://devcc.digialaya.com/WebServices/addLeadsApi', {
         body: JSON.stringify({
-            'Lead_LeadStatus' : StatusName,
-            'Lead_Campaign' : campaignName,
+            'Lead_LeadStatus' : statusVal,
+            'Lead_Campaign' : campaignVal,
             'Lead_Description' : description,
             'UserFirst_Name' : fname,
             'UserLast_Name' : lname,
@@ -98,11 +99,18 @@ const CallRelease = () => {
         return response.json();
         })
         .then((jsonObject) => {
+          console.log(jsonObject)
             if(jsonObject['status'] == 'success'){
-                
+               Alert.alert('Success','Lead Added Successfully');
+              return false; 
+            }
+            else if(jsonObject['status'] == 'alreadyassign'){
+              Alert.alert('Error','Record already exist');
+              return false;
             }
             else{
-              console.log('validation error');
+             Alert.alert('Error','Validation Error please fill all details');
+              return false; 
             }
         });
     }
@@ -172,7 +180,7 @@ const CallRelease = () => {
 
               if(LeadStatus.length > 0){
                 for(var i=0; i < LeadStatus.length; i++){
-                  statusoption.push({'label' : LeadStatus[i].LeadStatus_Name, 'value' : LeadStatus[i].LeadStatus_Id})
+                  statusoption.push({'label' : LeadStatus[i].LeadStatus_Name, 'value' : LeadStatus[i].LeadStatus_Name})
                 }
                 setFetchStatus(statusoption);
               }
@@ -399,29 +407,28 @@ switch(socketState){
     </View>
     <Image style={styles.logoImage} source={{ uri: 'http://devcc.digialaya.com/common/profilePic/callingperson.png' }}/>
     
-    // switch(callingState){
-    // case 0:
-    // (<View style={styles.buttonView} >
-    // <View style={styles.callingbuttons} >
-    // <Button title="Accept" color={Colors.SUCCESS_COLOR} onPress={CallAccepted}/>
-    // </View>
-    // <View style={styles.callingbuttons}>
-    // <Button title="Reject" color={Colors.DANGER_COLOR} onPress={CallRejected}/>
-    // </View>
-    // </View>)
-    // break;
-    // case 1:
-    // (<View style={styles.Dissconnect} >
-    // <Button title="Dissconnect" color={Colors.SUCCESS_COLOR} onPress={CallDiscopnnect}/>
-    // </View>)
-    // break;
-    // case 2:
-    // (<View style={styles.Dissconnect} >
-    // <Button title="Release" color={Colors.SUCCESS_COLOR} onPress={CallRelease}/>
-    // </View>)
-    // break; 
-    // }
+    {callingState == 0 && (<View style={styles.buttonView} >
+    <View style={styles.callingbuttons} >
+    <Button title="Accept" color={Colors.SUCCESS_COLOR} onPress={CallAccepted}/>
+    </View>
+    <View style={styles.callingbuttons}>
+    <Button title="Reject" color={Colors.DANGER_COLOR} onPress={CallRejected}/>
+    </View>
+    </View> ) }
+
+    { callingState == 1 &&
+      (<View style={styles.Dissconnect} >
+    <Button title="Dissconnect" color={Colors.DANGER_COLOR} onPress={CallDiscopnnect}/>
+    </View>) }
     
+    { callingState == 2 &&
+
+    (<View style={styles.Dissconnect} >
+    <Button title="Release" color={Colors.DANGER_COLOR} onPress={CallRelease}/>
+    </View>)
+    }
+
+ 
     
     </View>
     )
@@ -514,17 +521,7 @@ switch(socketState){
           onChangeText={text => setMobile(text)}
           />
         </View>
-        <View style={styles.textInputView}>
-        <TextInput 
-          placeholder="Lead Status"
-          keyboardType='default'
-          autoCorrect
-          required
-          style={styles.textInput}
-          value={status}
-          onChangeText={text => setStatus(text)}
-          />
-        </View>
+        
         <View style={styles.addBtn}>
         <Button title="Add Lead" color={Colors.PRIMARY_COLOR} onPress ={addLead}/>
         </View>
@@ -596,17 +593,7 @@ switch(socketState){
           />
         </View>
 
-        <View style={styles.textInputView}>
-        <TextInput 
-          placeholder="Status"
-          keyboardType='default'
-          autoCorrect
-          required
-          style={styles.textInput}
-          value={status}
-          onChangeText={text => setStatus(text)}
-          />
-        </View>
+        
         <View style={styles.addBtn}>
         <Button title="Add Progress" color={Colors.PRIMARY_COLOR} onPress ={addProgress}/>
         </View>
@@ -686,6 +673,10 @@ const styles = StyleSheet.create({
       width : "95%",
       backgroundColor : 'transparent',
       marginVertical : 12,
+    },
+    Dissconnect:{
+      marginVertical : 20,
+
     }
 
 });
