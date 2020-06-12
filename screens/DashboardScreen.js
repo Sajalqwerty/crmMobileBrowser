@@ -1,8 +1,10 @@
 import React,{useState,useEffect} from 'react';
 import { StyleSheet, Text, View, Alert,AsyncStorage,ScrollView,Button,Image,TextInput } from 'react-native';
 import Colors from '../Constants/Colors';
+import { HeaderButtons, Item } from 'react-navigation-header-buttons';
 import DropDownPicker from 'react-native-dropdown-picker';
-
+import { w3cwebsocket as W3CWebSocket } from "websocket";
+import { Ionicons } from '@expo/vector-icons';
 
 const DashboardScreen = props => {
 
@@ -12,13 +14,17 @@ const DashboardScreen = props => {
   const [fetchCampaign, setFetchCampaign] = useState([{label: '-- Select Campaign --', value: ''}]);
   const [fetchStatus, setFetchStatus] = useState([{label: '-- Select Status --', value: ''}]);
   const [showBreakButton, setShowBreakButton] = useState(true);
-  const [socketState,setSocketState] = useState(3);
+  const [socketState,setSocketState] = useState(1);
+
   const [fname, setFname] = useState('');
   const [lname, setLname] = useState('');
   const [email, setEmail] = useState('');
   const [description, setDescription] = useState('');
   const [mobile, setMobile] = useState('');
+  
   const [remarks, setRemarks] = useState('');
+  const [leadId, setLeadId] = useState('');
+  
   const [uuid,setuuid ] = useState('');
   const [callerNum,setCallerNum ] = useState('');
   const [campaignId,setCampaignId ] = useState('');
@@ -38,6 +44,47 @@ const DashboardScreen = props => {
 
   const [campaignVal,setCampaignVal] = useState('');
   const [statusVal,setStatusVal] = useState('');
+
+  DashboardScreen.navigationOptions = (navData) => {    
+
+    backToCall = () => {
+      setSocketState(2);
+    }
+
+    return {
+        title: 'Dashboard',
+        headerRight: () =>
+                <Ionicons name='ios-call' size={25} style={styles.headericon} onPress={backToCall}/>
+            // {socketState == 3 && (<Ionicons name='ios-call' size={40} style={styles.headericon} onPress={backToCall}/>) }
+            // {socketState == 4 && (<Ionicons name='ios-call' size={40} style={styles.headericon} onPress={backToCall}/>) }
+    }
+} 
+
+  const getLeadByNumber = (MobileNum,CampaignSelected) => {
+    console.log('in getLeadByNumber');
+    fetch('http://devcc.digialaya.com/WebServices/getLeadbyNumberApi', {
+        body: JSON.stringify({
+            'CustomerExt' : MobileNum,
+            'CampaignId' : CampaignSelected,
+        }),
+        method: 'post',
+        async : false,
+        }).then((response) => {
+        return response.json();
+        })
+        .then((jsonObject) => {
+          console.log(jsonObject);
+            if(jsonObject['status'] == 'success'){
+                changeStatus({'StatusName' : jsonObject['data'].CustomerLead_Status});
+                setLeadId(jsonObject['data'].CustomerLead_Id);
+                setFname(jsonObject['data'].CustomerLead_FirstName);
+                setLname(jsonObject['data'].CustomerLead_LastName);
+                setEmail(jsonObject['data'].CustomerLead_UserEmail);
+            }
+            else{
+            }
+        });
+  }
 
 const changeCampaign = (campaign) => {
  setCampaignVal(campaign.campaignName);
@@ -77,8 +124,6 @@ const CallRelease = () => {
 }
 
   const addLead = () =>{
-    console.log(statusVal)
-    console.log(campaignVal)
   fetch('http://devcc.digialaya.com/WebServices/addLeadsApi', {
         body: JSON.stringify({
             'Lead_LeadStatus' : statusVal,
@@ -116,15 +161,12 @@ const CallRelease = () => {
     }
 
     const addProgress = () => {
-      fetch('http://devcc.digialaya.com/WebServices/addProgressApi', {
+      
+      fetch('http://devcc.digialaya.com/WebServices/addLeadProgressApi', {
         body: JSON.stringify({
-            'Lead_LeadStatus' : StatusName,
-            'Lead_Campaign' : campaignName,
-            'Lead_Description' : description,
-            'UserFirst_Name' : fname,
-            'UserLast_Name' : lname,
-            'User_Email' : email,
-            'User_Mobile' : mobile,
+            'Lead_LeadStatus' : statusVal,
+            'Lead_Id' : leadId,
+            'Remarks' : remarks,
             'AgentName' : SessionData.UserName,
             'Role' : SessionData.Role,
             'EnterpriseId' : SessionData.EnterpriseId,
@@ -136,6 +178,7 @@ const CallRelease = () => {
         return response.json(); 
         })
         .then((jsonObject) => {
+            console.log(jsonObject)
             if(jsonObject['status'] == 'success'){
                 
             }
@@ -207,7 +250,8 @@ const CallRelease = () => {
         return false;
       }
       console.log(SessionData);
-      let socketconnect = new WebSocket("ws://180.179.210.49:6789/");
+      var W3CWebSocket = require('websocket').w3cwebsocket;
+      let socketconnect = new W3CWebSocket("ws://180.179.210.49:6789/", 'echo-protocol');
       console.log(socketconnect)
       setWebsocket(socketconnect);
 
@@ -261,6 +305,7 @@ if(Object.keys(websocket).length > 0 && websocket.constructor === Object){
 
 
   useEffect(() => {
+    getLeadByNumber("8077140282",11);
     if(websocket.readyState == 3){
           Alert.alert('Error','Voice server not connected');
     }
@@ -280,6 +325,7 @@ if(Object.keys(websocket).length > 0 && websocket.constructor === Object){
         setCallerNum(response.CallerNum);
         setCampaignId(response.CampaignId);
         setActionTime(response.ActionTime);
+        getLeadByNumber(response.CallerNum,response.CampaignId);
       }
       if("action" in response &&  response.action == "CALL_HANGUP")
       {
@@ -537,6 +583,7 @@ switch(socketState){
           keyboardType='default'
           autoCorrect
           required
+          editable = {false}
           style={styles.textInput}
           value={fname}
           onChangeText={text => setFname(text)}
@@ -548,6 +595,7 @@ switch(socketState){
           keyboardType='default'
           autoCorrect
           required
+          editable = {false}
           style={styles.textInput}
           value={lname}
           onChangeText={text => setLname(text)}
@@ -560,6 +608,7 @@ switch(socketState){
           keyboardType='default'
           autoCorrect
           required
+          editable = {false}
           style={styles.textInput}
           value={email}
           onChangeText={text => setEmail(text)}
@@ -604,6 +653,10 @@ switch(socketState){
 }
 
 };
+
+
+
+
 
 const styles = StyleSheet.create({
 
@@ -677,6 +730,9 @@ const styles = StyleSheet.create({
     Dissconnect:{
       marginVertical : 20,
 
+    },
+    headericon:{
+      marginRight : 50,
     }
 
 });
