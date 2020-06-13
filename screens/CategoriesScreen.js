@@ -144,6 +144,7 @@ const CategoriesScreen = props => {
 
     props.Senddata(data);
 
+    console.log(props.response.response)
     AsyncStorage.removeItem('userData');
     props.navigation('Login');
   }
@@ -167,7 +168,7 @@ const CategoriesScreen = props => {
     let data = { action: 'STATUSCHANGE', AnAgent: mySession, newstatus: 'BREAK' };
     let currentStatus = 'BREAK';
     props.Senddata(data);
-
+    console.log(props.response.response)
   setTimeout(function(){
 	if(props.response.response.data == 'Status changed from AVAILABLE to BREAK'){
 		setShowBreakButton(false);
