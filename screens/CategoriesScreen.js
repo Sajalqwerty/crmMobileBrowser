@@ -29,9 +29,8 @@ const CategoriesScreen = props => {
   const [loginTime, setLoginTime] = useState('00:00');
   const [showBreakButton, setShowBreakButton] = useState(true);
   const [SessionData, setSessionData] = useState([]);
-  
-	console.log('This response is getting in dashboard');
-	console.log(props.response);
+
+
 
   const getSessionData = async () => {
 
@@ -89,6 +88,32 @@ const CategoriesScreen = props => {
     return userData;
   }
 
+
+  setTimeout(function(){
+
+	let AgentData = props.response.response;
+	console.log(AgentData)
+	if(AgentData == undefined || AgentData == {}){
+		console.log('call agent session data again');
+		let mySession = {"EntId": SessionData.EnterpriseId, "SubEntId":SessionData.SubEnterpriseId, "SocketId": "", "AgentId": SessionData.UserId, "AgentExtension" :  SessionData.Mobile,"Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
+        let data = { action: 'LOGIN', AnAgent: mySession };
+		props.Senddata(data);	
+	}
+	if(AgentData.Status == "AVAILABLE" && typeof AgentData.SessionDetails === 'object')
+	  {
+	    setTotalCalls(AgentData.SessionDetails.TotalCalls);
+	    setAccepted(AgentData.SessionDetails.Accepted);
+	    setRejected(AgentData.SessionDetails.Rejected);
+	    let parts = AgentData.logintime.split(/[- :]/);
+	    let date = `${parts[2]}/${parts[1]}/${parts[0]}`;
+	    let time = `${parts[3]}:${parts[4]}`
+	    setLoginDate(date);
+	    setLoginTime(time);
+	    setAvtt(AgentData.SessionDetails.AvTT);
+	    setMaxtt(AgentData.SessionDetails.MaxTT);
+	  }
+  },500);  
+
   useEffect(() =>{
       getSessionData();
       if(!SessionData && SessionData.length === 0){
@@ -107,16 +132,33 @@ const CategoriesScreen = props => {
         console.log('tryagainconnect');
         props.Senddata(data);
       }
+      let Agentdata = { action: 'AGENTSESSIONDATA', AnAgent: mySession };
+      props.Senddata(Agentdata);
+
     },[]) 
     
 
  const Logout = (SessionData) => {
     let mySession = { "SocketId": "", "AgentId": SessionData.UserId, "Status": "LOGUT", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] } ;
     let data = { action: 'LOGOUT', AnAgent: mySession };
-    let currentStatus = 'LOGOUT';
-    websocket.send(JSON.stringify(data));
+
+    props.Senddata(data);
+
     AsyncStorage.removeItem('userData');
-    props.navigation.navigate('LoginScreen');
+    props.navigation('Login');
+  }
+
+  const UnBreak = (SessionData,websocket) => {
+    let mySession = { "SocketId": "", "AgentId": SessionData.UserId, "Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
+    let data = { action: 'STATUSCHANGE', AnAgent: mySession, newstatus: 'AVAILABLE' };
+    let currentStatus = 'AVAILABLE';
+    props.Senddata(data);
+      setTimeout(function(){
+      	console.log(props.response.response);
+	if(props.response.response.data == "Status changed from BREAK to AVAILABLE"){
+		setShowBreakButton(true);
+	}
+  	},1000);
   }
 
   const Break = (SessionData) => {
@@ -124,9 +166,13 @@ const CategoriesScreen = props => {
     let mySession = { "SocketId": "", "AgentId": SessionData.UserId, "Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
     let data = { action: 'STATUSCHANGE', AnAgent: mySession, newstatus: 'BREAK' };
     let currentStatus = 'BREAK';
-    console.log(data);
     props.Senddata(data);
-    // websocket.send(JSON.stringify(data));
+
+  setTimeout(function(){
+	if(props.response.response.data == 'Status changed from AVAILABLE to BREAK'){
+		setShowBreakButton(false);
+	}
+  },1000);
   }
 
 

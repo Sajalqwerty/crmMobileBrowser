@@ -94,7 +94,7 @@ const LoginScreen = props => {
 const styles = StyleSheet.create({
     screen: {
         flex: 1,
-        marginTop: "20%",
+        marginTop: "45%",
         marginHorizontal: 20,
         alignItems: 'center',
     },

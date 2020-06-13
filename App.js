@@ -4,6 +4,7 @@ import * as Font from 'expo-font';
 import { AppLoading } from 'expo';
 import AppNavigator from './navigation/AppNavigator';
 import Dashboard from './screens/CategoriesScreen';
+import Login from './screens/LoginScreen';
 
 const fetchFonts = () => {
   return Font.loadAsync({
@@ -17,7 +18,7 @@ export default class App extends React.Component {
 
   constructor() {
         super();
-
+        this.navigate = 'Login';
         this.state = {
             open: false,
             connected : false,
@@ -38,15 +39,14 @@ export default class App extends React.Component {
         this.socket.onmessage = (event) => {
           try {
             let response = JSON.parse(event.data);
-            console.log('in message')
-            console.log(this.state.response);
             this.state.response = response;
+            console.log(this.state.response);
           }
           catch(e){
 
           }
         }
-
+        console.log('in message')
         console.log(this.state.response)
     }
 
@@ -60,6 +60,11 @@ export default class App extends React.Component {
 
     }
 
+    navigation = (data) => {
+      this.navigate = data;
+      console.log('navigation page is :'+this.navigate);
+    }
+
   //  const [fontLoading,setFontLoading] = useState(false);
   // if(!fontLoading) {
   //   return (<AppLoading startAsync={fetchFonts} onFinish={() => setFontLoading(true)} />); 
@@ -70,10 +75,20 @@ export default class App extends React.Component {
   //       );
 
   render() {
-    return (
-          <Dashboard Senddata={this.Senddata} response={this.state.response}/>
-          // <AppNavigator onWebsocketCall = {this.socket}/>
-        );
+    switch(this.navigate){
+      case 'Dashboard' :
+      return (
+            <Dashboard Senddata={this.Senddata} response={this.state} navigation={this.navigation}/>
+            // <AppNavigator onWebsocketCall = {this.socket}/>
+          );
+      break;
+      case 'Login' :
+      return (
+            <Login Senddata={this.Senddata} response={this.state}/>
+            // <AppNavigator onWebsocketCall = {this.socket}/>
+          );
+      break;
+    }
   } 
 }
 
