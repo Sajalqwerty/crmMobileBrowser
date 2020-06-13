@@ -18,8 +18,18 @@ const setSessionData = async(data) => {
              }));
 }
 
+const tryLogin = async () => {
+
+    const userData = await AsyncStorage.getItem('userData');
+    
+    if(!userData) {
+        props.navigation.navigate('LoginScreen');
+        return false;
+    }
+}
+
 const LoginScreen = props => {
- 
+ tryLogin();
  const [email, setEmail] = useState('');
  const [password, setPassword] = useState('');
 

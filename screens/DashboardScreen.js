@@ -7,6 +7,9 @@ import { w3cwebsocket as W3CWebSocket } from "websocket";
 import { Ionicons } from '@expo/vector-icons';
 
 const DashboardScreen = props => {
+  console.log('these are props');
+  console.log(props.senddata);
+  console.log('end of props');
 
   const [SessionData, setSessionData] = useState([]);
   const [campaignList, setCampaignList] = useState([]);
@@ -45,21 +48,7 @@ const DashboardScreen = props => {
   const [campaignVal,setCampaignVal] = useState('');
   const [statusVal,setStatusVal] = useState('');
 
-  DashboardScreen.navigationOptions = (navData) => {    
-
-    backToCall = () => {
-      setSocketState(2);
-    }
-
-    return {
-        title: 'Dashboard',
-        headerRight: () =>
-                <Ionicons name='ios-call' size={25} style={styles.headericon} onPress={backToCall}/>
-            // {socketState == 3 && (<Ionicons name='ios-call' size={40} style={styles.headericon} onPress={backToCall}/>) }
-            // {socketState == 4 && (<Ionicons name='ios-call' size={40} style={styles.headericon} onPress={backToCall}/>) }
-    }
-} 
-
+  
   const getLeadByNumber = (MobileNum,CampaignSelected) => {
     console.log('in getLeadByNumber');
     fetch('http://devcc.digialaya.com/WebServices/getLeadbyNumberApi', {
@@ -75,6 +64,7 @@ const DashboardScreen = props => {
         .then((jsonObject) => {
           console.log(jsonObject);
             if(jsonObject['status'] == 'success'){
+                setSocketState(4);
                 changeStatus({'StatusName' : jsonObject['data'].CustomerLead_Status});
                 setLeadId(jsonObject['data'].CustomerLead_Id);
                 setFname(jsonObject['data'].CustomerLead_FirstName);
@@ -82,6 +72,7 @@ const DashboardScreen = props => {
                 setEmail(jsonObject['data'].CustomerLead_UserEmail);
             }
             else{
+                setSocketState(3);
             }
         });
   }
@@ -144,10 +135,9 @@ const CallRelease = () => {
         return response.json();
         })
         .then((jsonObject) => {
-          console.log(jsonObject)
             if(jsonObject['status'] == 'success'){
                Alert.alert('Success','Lead Added Successfully');
-              return false; 
+              setSocketState(2);
             }
             else if(jsonObject['status'] == 'alreadyassign'){
               Alert.alert('Error','Record already exist');
@@ -178,12 +168,12 @@ const CallRelease = () => {
         return response.json(); 
         })
         .then((jsonObject) => {
-            console.log(jsonObject)
             if(jsonObject['status'] == 'success'){
-                
+                setSocketState(2);
             }
             else{
-              console.log('validation error');
+              Alert.alert('Error','Please check your form again');
+              return false;
             }
         }); 
     }
@@ -285,7 +275,8 @@ const CallRelease = () => {
     let data = { action: 'STATUSCHANGE', AnAgent: mySession, newstatus: 'BREAK' };
     let currentStatus = 'BREAK';
     console.log(data);
-    websocket.send(JSON.stringify(data));
+    props.SendData(data);
+    // websocket.send(JSON.stringify(data));
   }
 
   const UnBreak = (SessionData,websocket) => {
@@ -293,6 +284,15 @@ const CallRelease = () => {
     let data = { action: 'STATUSCHANGE', AnAgent: mySession, newstatus: 'AVAILABLE' };
     let currentStatus = 'AVAILABLE';
     websocket.send(JSON.stringify(data));
+  }
+
+  DashboardScreen.navigationOptions = (navData) => {    
+    return {
+        title: 'Dashboard',
+        headerLeft: () => '',
+       headerRight: () =>
+                <Ionicons name='ios-power' size={25} style={styles.headericon} onPress={() => Logout(SessionData,websocket)}/>
+             }
   }
 
   
@@ -305,7 +305,6 @@ if(Object.keys(websocket).length > 0 && websocket.constructor === Object){
 
 
   useEffect(() => {
-    getLeadByNumber("8077140282",11);
     if(websocket.readyState == 3){
           Alert.alert('Error','Voice server not connected');
     }
