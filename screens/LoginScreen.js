@@ -16,6 +16,7 @@ const setSessionData = async(data) => {
                  'RoleId' : data.Users_Role,
                  'Role' : data.AgentsGroup_Role,
              }));
+    console.log('session set');
 }
 
 const tryLogin = async () => {
@@ -23,18 +24,17 @@ const tryLogin = async () => {
     const userData = await AsyncStorage.getItem('userData');
     
     if(!userData) {
-        props.navigation.navigate('LoginScreen');
+        props.navigation('Login');
         return false;
     }
 }
 
 const LoginScreen = props => {
- tryLogin();
+ // tryLogin();
  const [email, setEmail] = useState('');
  const [password, setPassword] = useState('');
 
     const LoginByAjax = (email,password) => {
-        console.log('all function');
         
         fetch('http://devcc.digialaya.com/WebServices/getAgentDataApi', {
         body: JSON.stringify({
@@ -48,8 +48,20 @@ const LoginScreen = props => {
         })
         .then((jsonObject) => {
             if(jsonObject['status'] == 'success'){
+                console.log('setting session');
                 setSessionData(jsonObject['data']);
-                props.navigation.navigate('DashboardScreen');
+                let session = {
+                 'UserId' : jsonObject['data'].Users_Id,
+                 'UserName' : jsonObject['data'].Users_Username,
+                 'Email' : jsonObject['data'].Users_Email,
+                 'Mobile' : jsonObject['data'].Users_Mobile,
+                 'EnterpriseId' : jsonObject['data'].Users_EnterpriseId,
+                 'SubEnterpriseId' : jsonObject['data'].Users_SubEnterpriseId,
+                 'RoleId' : jsonObject['data'].Users_Role,
+                 'Role' : jsonObject['data'].AgentsGroup_Role,
+                }
+                props.setAgentData(session);
+                props.navigation('Dashboard');
                 return;
             }
             else{

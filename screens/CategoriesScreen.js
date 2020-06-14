@@ -1,21 +1,21 @@
 import React,{useState,useEffect} from 'react';
-import { StyleSheet, Text, View,ScrollView,Button,AsyncStorage } from 'react-native';
+import { StyleSheet, Text, View,ScrollView,Button,AsyncStorage,Alert } from 'react-native';
 import Colors from '../Constants/Colors';
 
 
-const setSession = async(data) => {
+// const setSession = async(data) => {
 
-    AsyncStorage.setItem('userData',JSON.stringify({
-                 'UserId' : 22,
-                 'UserName' : 'Agent 1 cc',
-                 'Email' : 'Agent1cc@digialaya.com',
-                 'Mobile' : '8077140282',
-                 'EnterpriseId' : 23,
-                 'SubEnterpriseId' : null,
-                 'RoleId' : '5',
-                 'Role' : 'Agent',
-             }));
-}
+//     AsyncStorage.setItem('userData',JSON.stringify({
+//                  'UserId' : 22,
+//                  'UserName' : 'Agent 1 cc',
+//                  'Email' : 'Agent1cc@digialaya.com',
+//                  'Mobile' : '8077140282',
+//                  'EnterpriseId' : 23,
+//                  'SubEnterpriseId' : null,
+//                  'RoleId' : '5',
+//                  'Role' : 'Agent',
+//              }));
+// }
 
 
 const CategoriesScreen = props => {
@@ -30,14 +30,10 @@ const CategoriesScreen = props => {
   const [showBreakButton, setShowBreakButton] = useState(true);
   const [SessionData, setSessionData] = useState([]);
 
-
-
   const getSessionData = async () => {
 
-    setSession();
-    
-
     const userData = await AsyncStorage.getItem('userData');
+    console.log('print session data')
     console.log(userData)
     if(userData){
       let data = JSON.parse(userData);
@@ -88,19 +84,53 @@ const CategoriesScreen = props => {
     return userData;
   }
 
+  
+
+  const Login = (AgentSession) => {
+    let mySession = {"EntId": AgentSession.EnterpriseId, "SubEntId":AgentSession.SubEnterpriseId, "SocketId": "", "AgentId": AgentSession.UserId, "AgentExtension" :  AgentSession.Mobile,"Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
+    let data = { action: 'LOGIN', AnAgent: mySession };
+    props.Senddata(data);
+  }
+
+  const AgentSessionData = (AgentSession) => {
+    console.log('in agent session data function')
+    console.log(AgentSession)
+    let mySession = {"EntId": AgentSession.EnterpriseId, "SubEntId":AgentSession.SubEnterpriseId, "SocketId": "", "AgentId": AgentSession.UserId, "AgentExtension" :  AgentSession.Mobile,"Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
+    let data = { action: 'AGENTSESSIONDATA', AnAgent: mySession };
+    props.Senddata(data);
+  }
+
 
   setTimeout(function(){
 
-	let AgentData = props.response.response;
-	console.log(AgentData)
-	if(AgentData == undefined || AgentData == {}){
-		console.log('call agent session data again');
-		let mySession = {"EntId": SessionData.EnterpriseId, "SubEntId":SessionData.SubEnterpriseId, "SocketId": "", "AgentId": SessionData.UserId, "AgentExtension" :  SessionData.Mobile,"Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
-        let data = { action: 'LOGIN', AnAgent: mySession };
-		props.Senddata(data);	
-	}
-	if(AgentData.Status == "AVAILABLE" && typeof AgentData.SessionDetails === 'object')
-	  {
+
+  let AgentSession = props.response.agentdata;
+  let AgentData = props.response.response;
+  let loggedin = props.response.loggedin;
+  console.log('printing agent session data')
+  console.log(AgentData)
+  
+  if(loggedin == false && ('data' in AgentData && AgentData.data != 'AVAILABLE')){
+    
+      Login(AgentSession);
+  }
+  if('data' in AgentData && AgentData.data == 'AVAILABLE')
+  {
+    console.log('checkingh')
+    AgentSessionData(AgentSession);
+  }
+	else if('data' in AgentData && AgentData.data == 'Status changed from AVAILABLE to BREAK'){
+      setShowBreakButton(false);
+  }
+  else if('data' in AgentData && AgentData.data == 'Status changed from BREAK to AVAILABLE'){
+      setShowBreakButton(true);
+  }
+  else if('data' in AgentData && AgentData.data == "LOGGED-OUT" && loggedin == true){
+        AsyncStorage.removeItem('userData');
+        props.navigation('Login');
+  }
+	else if(AgentData.Status == "AVAILABLE" && typeof AgentData.SessionDetails === 'object')
+	{
 	    setTotalCalls(AgentData.SessionDetails.TotalCalls);
 	    setAccepted(AgentData.SessionDetails.Accepted);
 	    setRejected(AgentData.SessionDetails.Rejected);
@@ -111,18 +141,16 @@ const CategoriesScreen = props => {
 	    setLoginTime(time);
 	    setAvtt(AgentData.SessionDetails.AvTT);
 	    setMaxtt(AgentData.SessionDetails.MaxTT);
-	  }
+	}
   },500);  
 
   useEffect(() =>{
-      getSessionData();
-      if(!SessionData && SessionData.length === 0){
-        Alert.alert('Connection Close Please Try Again Later');
-        return false;
-      }
-      let mySession = {"EntId": SessionData.EnterpriseId, "SubEntId":SessionData.SubEnterpriseId, "SocketId": "", "AgentId": SessionData.UserId, "AgentExtension" :  SessionData.Mobile,"Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
+      
+      let AgentSession = props.response.agentdata;
+      
+      let mySession = {"EntId": AgentSession.EnterpriseId, "SubEntId":AgentSession.SubEnterpriseId, "SocketId": "", "AgentId": AgentSession.UserId, "AgentExtension" :  AgentSession.Mobile,"Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
       let data = { action: 'LOGIN', AnAgent: mySession };
-      let currentStatus = 'AVAILABLE';
+      console.log(mySession);
 
       try{
         console.log('connect');
@@ -143,10 +171,6 @@ const CategoriesScreen = props => {
     let data = { action: 'LOGOUT', AnAgent: mySession };
 
     props.Senddata(data);
-
-    console.log(props.response.response)
-    AsyncStorage.removeItem('userData');
-    props.navigation('Login');
   }
 
   const UnBreak = (SessionData,websocket) => {
@@ -154,12 +178,6 @@ const CategoriesScreen = props => {
     let data = { action: 'STATUSCHANGE', AnAgent: mySession, newstatus: 'AVAILABLE' };
     let currentStatus = 'AVAILABLE';
     props.Senddata(data);
-      setTimeout(function(){
-      	console.log(props.response.response);
-	if(props.response.response.data == "Status changed from BREAK to AVAILABLE"){
-		setShowBreakButton(true);
-	}
-  	},1000);
   }
 
   const Break = (SessionData) => {
@@ -168,12 +186,7 @@ const CategoriesScreen = props => {
     let data = { action: 'STATUSCHANGE', AnAgent: mySession, newstatus: 'BREAK' };
     let currentStatus = 'BREAK';
     props.Senddata(data);
-    console.log(props.response.response)
-  setTimeout(function(){
-	if(props.response.response.data == 'Status changed from AVAILABLE to BREAK'){
-		setShowBreakButton(false);
-	}
-  },1000);
+  	
   }
 
 

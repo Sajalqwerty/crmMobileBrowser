@@ -18,13 +18,17 @@ export default class App extends React.Component {
 
   constructor() {
         super();
-        this.navigate = 'Login';
         this.state = {
+            datafor: "Login",
             open: false,
             connected : false,
             mysocket :"",
             response : {},
-
+            agentdata : {},
+            loggedin : false,
+            agentstatus:"currentstatus",
+            cdrtdata: "data",
+            CallProgress: "data"
         };
         this.socket = new WebSocket('ws://180.179.210.49:6789/');
 
@@ -35,34 +39,52 @@ export default class App extends React.Component {
 
         };
 
+        this.socket.onclose = (event) => {
+          this.setState({connected : false});
+        }
+
 
         this.socket.onmessage = (event) => {
           try {
             let response = JSON.parse(event.data);
-            this.state.response = response;
+            this.setState({response: response});
+
+            console.log('in message')
             console.log(this.state.response);
-          }
-          catch(e){
+          
+          if('data' in response && response.data == "LOGGED-OUT"){
+            console.log('loggedout')
+            this.setState({loggedin : false});
+            }
 
           }
+          catch(e){
+            console.log('error found')
+            this.setState({response: {}});
+              console.log(e)
+          }
         }
-        console.log('in message')
-        console.log(this.state.response)
+        
     }
 
 
     Senddata = (data) => {
       if (this.state.connected == true){
-        console.log('here')
       this.socket.send(JSON.stringify(data));
 
       }
-
     }
 
     navigation = (data) => {
-      this.navigate = data;
-      console.log('navigation page is :'+this.navigate);
+      this.setState({datafor : data});
+    }
+
+    setAgentData = (data) => {
+      console.log(data);
+      this.setState({agentdata : data});
+      console.log('seiitng session data')
+      console.log(this.state.agentdata);
+
     }
 
   //  const [fontLoading,setFontLoading] = useState(false);
@@ -75,16 +97,18 @@ export default class App extends React.Component {
   //       );
 
   render() {
-    switch(this.navigate){
+    console.log('calling render');
+    
+    switch(this.state.datafor){
       case 'Dashboard' :
       return (
-            <Dashboard Senddata={this.Senddata} response={this.state} navigation={this.navigation}/>
+            <Dashboard Senddata={this.Senddata} response={this.state} navigation={this.navigation} Connect={this.Connect}/>
             // <AppNavigator onWebsocketCall = {this.socket}/>
           );
       break;
       case 'Login' :
       return (
-            <Login Senddata={this.Senddata} response={this.state}/>
+            <Login navigation={this.navigation} setAgentData = {this.setAgentData}/>
             // <AppNavigator onWebsocketCall = {this.socket}/>
           );
       break;
