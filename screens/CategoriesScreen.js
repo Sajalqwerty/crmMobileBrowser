@@ -111,6 +111,7 @@ const CategoriesScreen = props => {
   },500);  
 
   useEffect(() =>{
+      props.setLeadAdded(false);
       let AgentSession = props.response.agentdata;
       fetch('http://devcc.digialaya.com/WebServices/getCampaignApi/'+AgentSession.UserId+'/'+AgentSession.EnterpriseId+'/'+AgentSession.SubEnterpriseId, {
         method: 'post',
@@ -130,7 +131,12 @@ const CategoriesScreen = props => {
                   camparr.push(Campaign[i].Campaign_Id);
                 }
                 props.setCampaign(camparr);
-                Login(AgentSession,camparr);
+
+                if(props.response.loggedin == false){
+
+                  Login(AgentSession,camparr);
+                }
+                
                 AgentSessionData(AgentSession,camparr);
               }
             }
@@ -148,7 +154,7 @@ const CategoriesScreen = props => {
     let data = { action: 'LOGOUT', AnAgent: mySession };
 
     props.Senddata(data);
-    props.navigation.navigate('LoginScreen');
+
     setTimeout(function(){
         props.navigation('Login');
     },500)

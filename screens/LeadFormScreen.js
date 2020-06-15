@@ -1,20 +1,14 @@
-import React,{useState} from 'react';
-import { StyleSheet, Text, View,TextInput,Button,ScrollView } from 'react-native';
+import React,{useState,useEffect} from 'react';
+import { StyleSheet, Text, View,TextInput,Button,ScrollView,Alert } from 'react-native';
 import Colors from '../Constants/Colors';
 import DropDownPicker from 'react-native-dropdown-picker';
-
-const changeCampaign = (campaign) => {
- console.log(campaign);
-}
 
 
 const LeadFormScreen = props => {
 
-const country = 'uk';
-const fetchCampaign = [
-                {label: 'UK', value: 'uk'},
-                {label: 'France', value: 'france'},
-         ];
+const [campaignList, setCampaignList] = useState([]);
+const [fetchCampaign, setFetchCampaign] = useState([{label: '-- Select Campaign --', value: ''}]);
+const [fetchStatus, setFetchStatus] = useState([{label: '-- Select Status --', value: ''}]);
 
 const [fname, setFname] = useState('');
 const [campaign, setCampaign] = useState('');
@@ -23,18 +17,132 @@ const [email, setEmail] = useState('');
 const [description, setDescription] = useState('');
 const [mobile, setMobile] = useState('');
 const [status, setStatus] = useState('');
+const campaignName = '';
+const StatusName = '';
+
+const [campaignVal,setCampaignVal] = useState('');
+const [statusVal,setStatusVal] = useState('');
+
+
+const AgentSession = props.response.agentdata;
+
+const changeCampaign = (campaign) => {
+ setCampaignVal(campaign.campaignName);
+ 
+}
+
+const changeStatus = (status) =>{
+ setStatusVal(status.StatusName);
+}
+
+const backtocall = () => {
+  props.setLeadAdded(true);
+  props.navigation('CallPopup');
+}
+
+useEffect(()=>{
+
+ fetch('http://devcc.digialaya.com/WebServices/getCampaignApi/'+AgentSession.UserId+'/'+AgentSession.EnterpriseId+'/'+AgentSession.SubEnterpriseId, {
+  method: 'post',
+  async : false,
+  }).then((response) => {
+  return response.json();
+  })
+  .then((jsonObject) => {
+    console.log(jsonObject);
+      let camparr = [];
+      let campoption = [{label: '-- Select Campaign --', value: ''}];
+      let statusoption = [{label: '-- Select Status --', value: ''}];
+      if(jsonObject['status'] == 'success'){
+
+        let Campaign = jsonObject['data']['Campaign'];
+        let LeadStatus = jsonObject['data']['LeadStatus'];
+
+        if(Campaign.length > 0){
+          for(var i=0; i < Campaign.length; i++){
+            campoption.push({'label' : Campaign[i].Campaign_Name, 'value' : Campaign[i].Campaign_Id})
+          }
+          setFetchCampaign(campoption);
+          console.log(fetchCampaign);
+        }
+
+        if(LeadStatus.length > 0){
+          for(var i=0; i < LeadStatus.length; i++){
+            statusoption.push({'label' : LeadStatus[i].LeadStatus_Name, 'value' : LeadStatus[i].LeadStatus_Name})
+          }
+          setFetchStatus(statusoption);
+        }
+
+      }
+      else{
+        console.log('validation error');
+      }
+  });
+},[])
+
+const addLead = (AgentSession) =>{
+  fetch('http://devcc.digialaya.com/WebServices/addLeadsApi', {
+        body: JSON.stringify({
+            'Lead_LeadStatus' : statusVal,
+            'Lead_Campaign' : campaignVal,
+            'Lead_Description' : description,
+            'UserFirst_Name' : fname,
+            'UserLast_Name' : lname,
+            'User_Email' : email,
+            'User_Mobile' : mobile,
+            'AgentName' : AgentSession.UserName,
+            'EnterpriseId' : AgentSession.EnterpriseId,
+            'SubEnterpriseId' : AgentSession.SubEnterpriseId,
+
+        }),
+        method: 'post',
+        async : false,
+        }).then((response) => {
+        return response.json();
+        })
+        .then((jsonObject) => {
+            props.setLeadAdded(true);
+            if(jsonObject['status'] == 'success'){
+               Alert.alert('Success','Lead Added Successfully');
+              props.navigation('CallPopup');
+            }
+            else if(jsonObject['status'] == 'alreadyassign'){
+              Alert.alert('Error','Record already exist');
+              return false;
+            }
+            else{
+             Alert.alert('Error','Validation Error please fill all details');
+              return false; 
+            }
+        });
+    }
+
 
 return (
     <ScrollView style = {styles.screen}>
         <View >
-         <DropDownPicker
+        <DropDownPicker
          items={fetchCampaign}
-        defaultValue={country}
-        containerStyle={{height: 50}}
+        defaultValue={campaignName}
+        containerStyle={{height: 70}}
         style={styles.select}
         dropDownStyle={{backgroundColor: '#fafafa'}}
         onChangeItem={item => changeCampaign({
-        country: item.value
+        campaignName: item.value
+        })}
+        />
+
+        </View>
+
+        <View >
+        <DropDownPicker
+         items={fetchStatus}
+        defaultValue={StatusName}
+        containerStyle={{height: 70}}
+        style={styles.select}
+        dropDownStyle={{backgroundColor: '#fafafa'}}
+        onChangeItem={item => changeStatus({
+        StatusName: item.value
         })}
         />
 
@@ -97,20 +205,16 @@ return (
           onChangeText={text => setMobile(text)}
           />
         </View>
-        <View style={styles.textInputView}>
-        <TextInput 
-          placeholder="Lead Status"
-          keyboardType='default'
-          autoCorrect
-          required
-          style={styles.textInput}
-          value={status}
-          onChangeText={text => setStatus(text)}
-          />
-        </View>
+    
         <View style={styles.addBtn}>
-        <Button title="Add Lead" color={Colors.PRIMARY_COLOR} />
+          <View style={styles.subbtn}>
+            <Button title="Add Lead" color={Colors.PRIMARY_COLOR} onPress ={() => addLead(AgentSession)}/>
+          </View>
+          <View style={styles.subbtn}>
+            <Button title="Back To Call" color={Colors.DANGER_COLOR} onPress ={() => backtocall()}/>
+          </View>
         </View>
+
     </ScrollView>
 );
 
@@ -119,16 +223,20 @@ return (
 const styles = StyleSheet.create({
     screen: {
         flex: 1,
-        marginTop: "10%",
+        marginTop: "20%",
         marginHorizontal: 20,
     },
     textInput: {
         width: '90%'
     },
     addBtn: {       
-        margin: 20,
+        margin: 10,
         width : '90%',
-        alignItems: 'center'
+        flexDirection: 'row',
+    },
+    subbtn :{
+      width : "50%",
+      marginRight : 10,
     },
     textInputView: {
         flexDirection: 'row',
@@ -141,7 +249,8 @@ const styles = StyleSheet.create({
     },
     select : {
       width : "95%",
-      backgroundColor : '#fff'
+      backgroundColor : 'transparent',
+      marginVertical : 12,
     }
 });
 

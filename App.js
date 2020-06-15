@@ -28,8 +28,10 @@ export default class App extends React.Component {
             mysocket :"",
             response : {},
             agentdata : {},
+            leaddata : {},
             CampaignList : [],
             loggedin : false,
+            leadadded : false,
             agentstatus:"currentstatus",
             cdrtdata: "data",
             CallProgress: {}
@@ -105,6 +107,15 @@ export default class App extends React.Component {
       this.setState({CampaignList : data});
     }
 
+    setLeadAdded = (data) => {
+      this.setState({leadadded : data});
+    }
+
+    setLeadData = (data) =>{
+      this.setState({leaddata : data});
+
+    }
+
   //  const [fontLoading,setFontLoading] = useState(false);
   // if(!fontLoading) {
   //   return (<AppLoading startAsync={fetchFonts} onFinish={() => setFontLoading(true)} />); 
@@ -120,6 +131,7 @@ export default class App extends React.Component {
     if(this.socket.readyState == 3){
           try{
             console.log('conecting to socket');
+            window.location.reload();
               // this.socket = new WebSocket('ws://180.179.210.49:6789/');
           }
           catch(e){
@@ -127,10 +139,12 @@ export default class App extends React.Component {
           }  
         }
     
+    <AppLoading startAsync={fetchFonts} />
+
     switch(this.state.datafor){
       case 'Dashboard' :
       return (
-            <Dashboard Senddata={this.Senddata} response={this.state} navigation={this.navigation} Connect={this.Connect} setCampaign={this.setCampaign}/>
+            <Dashboard Senddata={this.Senddata} response={this.state} navigation={this.navigation} Connect={this.Connect} setCampaign={this.setCampaign} setLeadAdded={this.setLeadAdded}/>
             // <AppNavigator onWebsocketCall = {this.socket}/>
           );
       break;
@@ -142,19 +156,19 @@ export default class App extends React.Component {
       break;
       case 'CallPopup' :
       return (
-            <CallPopup navigation={this.navigation} response={this.state} Senddata={this.Senddata}/>
+            <CallPopup navigation={this.navigation} response={this.state} Senddata={this.Senddata} setLeadData={this.setLeadData}/>
             // <AppNavigator onWebsocketCall = {this.socket}/>
           );
       break;
       case 'LeadScreen' :
       return (
-            <LeadScreen navigation={this.navigation} response={this.state} Senddata={this.Senddata}/>
+            <LeadScreen navigation={this.navigation} response={this.state} Senddata={this.Senddata} setLeadAdded={this.setLeadAdded}/>
             // <AppNavigator onWebsocketCall = {this.socket}/>
           );
       break;
       case 'ProgressScreen' :
       return (
-            <Progress navigation={this.navigation} response={this.state} Senddata={this.Senddata}/>
+            <Progress navigation={this.navigation} response={this.state} Senddata={this.Senddata} setLeadAdded={this.setLeadAdded}/>
             // <AppNavigator onWebsocketCall = {this.socket}/>
           );
       break;

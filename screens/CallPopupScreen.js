@@ -26,12 +26,14 @@ const getLeadByNumber = (MobileNum,CampaignSelected) => {
         .then((jsonObject) => {
           console.log(jsonObject);
             if(jsonObject['status'] == 'success'){
+                props.setLeadData({
+                    'StatusName' : jsonObject['data'].CustomerLead_Status,
+                    'LeadId' : jsonObject['data'].CustomerLead_Id,
+                    'FirstName' : jsonObject['data'].CustomerLead_FirstName,
+                    'LastName' : jsonObject['data'].CustomerLead_LastName,
+                    'Email' : jsonObject['data'].CustomerLead_UserEmail,
+                })
                 props.navigation('ProgressScreen');
-                changeStatus({'StatusName' : jsonObject['data'].CustomerLead_Status});
-                setLeadId(jsonObject['data'].CustomerLead_Id);
-                setFname(jsonObject['data'].CustomerLead_FirstName);
-                setLname(jsonObject['data'].CustomerLead_LastName);
-                setEmail(jsonObject['data'].CustomerLead_UserEmail);
             }
             else{
                 props.navigation('LeadScreen');
@@ -49,8 +51,29 @@ if('ReqAction' in props.response.response && props.response.response.ReqAction =
 }
 else if('ProgressAction' in props.response.response && props.response.response.ProgressAction == "ON-CALL")
 {
-    getLeadByNumber(callingData.CallerNum,callingData.CampaignId);
-    setCallingState(1);
+    if(props.response.leadadded == false){
+        getLeadByNumber(callingData.CallerNum,callingData.CampaignId);
+        setCallingState(1);
+    }
+    else{
+        setCallingState(1);
+        setCallingData(props.response.CallProgress);
+    }
+}
+else if('ProgressAction' in props.response.response && props.response.response.ProgressAction == "ON-RELEASE"){
+    setCallingState(2);
+}
+else if('ProgressAction' in props.response.response && props.response.response.ProgressAction == "AVAILABLE"){
+    props.navigation('Dashboard');
+}
+else if('data' in props.response.response && props.response.response.data == "Status changed from TRANSIENT to AVAILABLE"){
+    props.navigation('Dashboard');
+}
+else{
+    console.log('this is else after lead submit')
+    console.log(props.response.CallProgress)
+    setCallingData(props.response.CallProgress);
+
 }
 
 },500)
@@ -99,7 +122,6 @@ return (
     <View style = {styles.screen}>
     <View style={styles.callDetails}>
     <Text style={styles.callDetailText}>{callingData.CallerNum}</Text>
-    <Text style={styles.callDetailText}>00:00</Text>
     </View>
     <Image style={styles.logoImage} source={{ uri: 'http://devcc.digialaya.com/common/profilePic/callingperson.png' }}/>
     
@@ -131,7 +153,7 @@ return (
 const styles = StyleSheet.create({
     screen: {
         flex: 1,
-        marginTop: "15%",
+        marginTop: "30%",
         marginHorizontal: 20,
         alignItems: 'center',
     },
@@ -157,7 +179,6 @@ const styles = StyleSheet.create({
     callDetailText:{
         fontSize: 20,
         fontWeight: '100',
-        fontFamily: 'open-sans-bold',
     }
 });
 
