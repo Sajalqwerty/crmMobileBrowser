@@ -29,6 +29,7 @@ const CategoriesScreen = props => {
   const [loginTime, setLoginTime] = useState('00:00');
   const [showBreakButton, setShowBreakButton] = useState(true);
   const [SessionData, setSessionData] = useState([]);
+  const [campaignList, setCampaignList] = useState([]);
 
   const getSessionData = async () => {
 
@@ -39,54 +40,17 @@ const CategoriesScreen = props => {
       let data = JSON.parse(userData);
 
       setSessionData(data);
-      // fetch('http://devcc.digialaya.com/WebServices/getCampaignApi/'+data.UserId+'/'+data.EnterpriseId+'/'+data.SubEnterpriseId, {
-      //   method: 'post',
-      //   async : false,
-      //   }).then((response) => {
-      //   return response.json();
-      //   })
-      //   .then((jsonObject) => {
-      //     console.log(jsonObject);
-      //       let camparr = [];
-      //       let campoption = [{label: '-- Select Campaign --', value: ''}];
-      //       let statusoption = [{label: '-- Select Status --', value: ''}];
-      //       if(jsonObject['status'] == 'success'){
-
-      //         let Campaign = jsonObject['data']['Campaign'];
-      //         let LeadStatus = jsonObject['data']['LeadStatus'];
-
-      //         if(Campaign.length > 0){
-      //           for(var i=0; i < Campaign.length; i++){
-      //             camparr.push(Campaign[i].Campaign_Id);
-      //             campoption.push({'label' : Campaign[i].Campaign_Name, 'value' : Campaign[i].Campaign_Id})
-      //           }
-      //           setFetchCampaign(campoption);
-      //           setCampaignList(camparr);
-      //           console.log(fetchCampaign);
-      //         }
-
-      //         if(LeadStatus.length > 0){
-      //           for(var i=0; i < LeadStatus.length; i++){
-      //             statusoption.push({'label' : LeadStatus[i].LeadStatus_Name, 'value' : LeadStatus[i].LeadStatus_Name})
-      //           }
-      //           setFetchStatus(statusoption);
-      //         }
-
-      //       }
-      //       else{
-      //         console.log('validation error');
-      //       }
-      //   });
+      
     }
     else{
       console.log('Session Time Out Please Retry App');
     }
-    return userData;
   }
 
   
 
   const Login = (AgentSession) => {
+    console.log('in login func')
     let mySession = {"EntId": AgentSession.EnterpriseId, "SubEntId":AgentSession.SubEnterpriseId, "SocketId": "", "AgentId": AgentSession.UserId, "AgentExtension" :  AgentSession.Mobile,"Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
     let data = { action: 'LOGIN', AnAgent: mySession };
     props.Senddata(data);
@@ -107,19 +71,19 @@ const CategoriesScreen = props => {
   let AgentSession = props.response.agentdata;
   let AgentData = props.response.response;
   let loggedin = props.response.loggedin;
-  console.log('printing agent session data')
-  console.log(AgentData)
+  console.log('printing state')
+  console.log(props.response)
   
-  if(loggedin == false && ('data' in AgentData && AgentData.data != 'AVAILABLE')){
+  // if(loggedin == false && ('data' in AgentData && AgentData.data != 'AVAILABLE')){
     
-      Login(AgentSession);
-  }
-  if('data' in AgentData && AgentData.data == 'AVAILABLE')
-  {
-    console.log('checkingh')
-    AgentSessionData(AgentSession);
-  }
-	else if('data' in AgentData && AgentData.data == 'Status changed from AVAILABLE to BREAK'){
+  //     Login(AgentSession);
+  // }
+  // if('data' in AgentData && AgentData.data == 'AVAILABLE')
+  // {
+  //   console.log('checkingh')
+  //   AgentSessionData(AgentSession);
+  // }
+	if('data' in AgentData && AgentData.data == 'Status changed from AVAILABLE to BREAK'){
       setShowBreakButton(false);
   }
   else if('data' in AgentData && AgentData.data == 'Status changed from BREAK to AVAILABLE'){
@@ -145,44 +109,61 @@ const CategoriesScreen = props => {
   },500);  
 
   useEffect(() =>{
-      
       let AgentSession = props.response.agentdata;
-      
-      let mySession = {"EntId": AgentSession.EnterpriseId, "SubEntId":AgentSession.SubEnterpriseId, "SocketId": "", "AgentId": AgentSession.UserId, "AgentExtension" :  AgentSession.Mobile,"Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
-      let data = { action: 'LOGIN', AnAgent: mySession };
-      console.log(mySession);
+      fetch('http://devcc.digialaya.com/WebServices/getCampaignApi/'+AgentSession.UserId+'/'+AgentSession.EnterpriseId+'/'+AgentSession.SubEnterpriseId, {
+        method: 'post',
+        async : false,
+        }).then((response) => {
+        return response.json();
+        })
+        .then((jsonObject) => {
+          console.log(jsonObject);
+            let camparr = [];
+            if(jsonObject['status'] == 'success'){
 
-      try{
-        console.log('connect');
-        props.Senddata(data);
-      }
-      catch(e){
-        console.log('tryagainconnect');
-        props.Senddata(data);
-      }
-      let Agentdata = { action: 'AGENTSESSIONDATA', AnAgent: mySession };
-      props.Senddata(Agentdata);
+              let Campaign = jsonObject['data']['Campaign'];
 
+              if(Campaign.length > 0){
+                for(var i=0; i < Campaign.length; i++){
+                  camparr.push(Campaign[i].Campaign_Id);
+                }
+                console.log(camparr);
+                setCampaignList(camparr);
+              }
+            }
+            else{
+              console.log('validation error');
+            }
+        });
+      console.log(campaignList);
+      Login(AgentSession);
+      AgentSessionData(AgentSession);
     },[]) 
     
 
- const Logout = (SessionData) => {
-    let mySession = { "SocketId": "", "AgentId": SessionData.UserId, "Status": "LOGUT", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] } ;
+ const Logout = () => {
+    let AgentSession = props.response.agentdata;
+    let mySession = { "SocketId": "", "AgentId": AgentSession.UserId, "Status": "LOGUT", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] } ;
     let data = { action: 'LOGOUT', AnAgent: mySession };
 
     props.Senddata(data);
+    props.navigation.navigate('LoginScreen');
+    setTimeout(function(){
+        props.navigation('Login');
+    },500)
   }
 
-  const UnBreak = (SessionData,websocket) => {
-    let mySession = { "SocketId": "", "AgentId": SessionData.UserId, "Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
+  const UnBreak = () => {
+    let AgentSession = props.response.agentdata;
+    let mySession = { "SocketId": "", "AgentId": AgentSession.UserId, "Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
     let data = { action: 'STATUSCHANGE', AnAgent: mySession, newstatus: 'AVAILABLE' };
     let currentStatus = 'AVAILABLE';
     props.Senddata(data);
   }
 
-  const Break = (SessionData) => {
-
-    let mySession = { "SocketId": "", "AgentId": SessionData.UserId, "Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
+  const Break = () => {
+    let AgentSession = props.response.agentdata;
+    let mySession = { "SocketId": "", "AgentId": AgentSession.UserId, "Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
     let data = { action: 'STATUSCHANGE', AnAgent: mySession, newstatus: 'BREAK' };
     let currentStatus = 'BREAK';
     props.Senddata(data);
@@ -253,11 +234,11 @@ return (
     <View style={styles.buttonView} >
       <View style={styles.callingbuttons} >
        {showBreakButton ? 
-        (<Button title="Break" color={Colors.DANGER_COLOR} onPress={() => Break(SessionData)}/>):
-        (<Button title="Unbreak" color={Colors.DANGER_COLOR} onPress={() => UnBreak(SessionData)}/>)}
+        (<Button title="Break" color={Colors.DANGER_COLOR} onPress={() => Break()}/>):
+        (<Button title="Unbreak" color={Colors.DANGER_COLOR} onPress={() => UnBreak()}/>)}
       </View>
       <View style={styles.callingbuttons}>
-      <Button title="Logout" color={Colors.DANGER_COLOR} onPress={() => Logout(SessionData)}/>
+      <Button title="Logout" color={Colors.DANGER_COLOR} onPress={() => Logout()}/>
       </View>
     </View>
   
