@@ -29,7 +29,6 @@ const CategoriesScreen = props => {
   const [loginTime, setLoginTime] = useState('00:00');
   const [showBreakButton, setShowBreakButton] = useState(true);
   const [SessionData, setSessionData] = useState([]);
-  const [campaignList, setCampaignList] = useState([]);
 
   const getSessionData = async () => {
 
@@ -49,17 +48,20 @@ const CategoriesScreen = props => {
 
   
 
-  const Login = (AgentSession) => {
-    console.log('in login func')
-    let mySession = {"EntId": AgentSession.EnterpriseId, "SubEntId":AgentSession.SubEnterpriseId, "SocketId": "", "AgentId": AgentSession.UserId, "AgentExtension" :  AgentSession.Mobile,"Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
+  const Login = (AgentSession,CampaignList) => {
+
+    let mySession = {"EntId": AgentSession.EnterpriseId, "SubEntId":AgentSession.SubEnterpriseId, "SocketId": "", "AgentId": AgentSession.UserId, "AgentExtension" :  AgentSession.Mobile,"Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": CampaignList };
     let data = { action: 'LOGIN', AnAgent: mySession };
+
+    console.log('login data thussssssssssssssssssssssss');
+    console.log(data);
+
     props.Senddata(data);
   }
 
-  const AgentSessionData = (AgentSession) => {
-    console.log('in agent session data function')
-    console.log(AgentSession)
-    let mySession = {"EntId": AgentSession.EnterpriseId, "SubEntId":AgentSession.SubEnterpriseId, "SocketId": "", "AgentId": AgentSession.UserId, "AgentExtension" :  AgentSession.Mobile,"Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
+  const AgentSessionData = (AgentSession,CampaignList) => {
+    
+    let mySession = {"EntId": AgentSession.EnterpriseId, "SubEntId":AgentSession.SubEnterpriseId, "SocketId": "", "AgentId": AgentSession.UserId, "AgentExtension" :  AgentSession.Mobile,"Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": CampaignList };
     let data = { action: 'AGENTSESSIONDATA', AnAgent: mySession };
     props.Senddata(data);
   }
@@ -127,23 +129,22 @@ const CategoriesScreen = props => {
                 for(var i=0; i < Campaign.length; i++){
                   camparr.push(Campaign[i].Campaign_Id);
                 }
-                console.log(camparr);
-                setCampaignList(camparr);
+                props.setCampaign(camparr);
+                Login(AgentSession,camparr);
+                AgentSessionData(AgentSession,camparr);
               }
             }
             else{
               console.log('validation error');
             }
         });
-      console.log(campaignList);
-      Login(AgentSession);
-      AgentSessionData(AgentSession);
     },[]) 
     
 
  const Logout = () => {
+    let CampaignList = props.response.CampaignList;
     let AgentSession = props.response.agentdata;
-    let mySession = { "SocketId": "", "AgentId": AgentSession.UserId, "Status": "LOGUT", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] } ;
+    let mySession = { "SocketId": "", "AgentId": AgentSession.UserId, "Status": "LOGUT", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": CampaignList } ;
     let data = { action: 'LOGOUT', AnAgent: mySession };
 
     props.Senddata(data);
@@ -154,16 +155,18 @@ const CategoriesScreen = props => {
   }
 
   const UnBreak = () => {
+    let CampaignList = props.response.CampaignList;
     let AgentSession = props.response.agentdata;
-    let mySession = { "SocketId": "", "AgentId": AgentSession.UserId, "Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
+    let mySession = { "SocketId": "", "AgentId": AgentSession.UserId, "Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": CampaignList };
     let data = { action: 'STATUSCHANGE', AnAgent: mySession, newstatus: 'AVAILABLE' };
     let currentStatus = 'AVAILABLE';
     props.Senddata(data);
   }
 
   const Break = () => {
+    let CampaignList = props.response.CampaignList;
     let AgentSession = props.response.agentdata;
-    let mySession = { "SocketId": "", "AgentId": AgentSession.UserId, "Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": [] };
+    let mySession = { "SocketId": "", "AgentId": AgentSession.UserId, "Status": "AVAILABLE", "SessionDetails": { "TotalCalls": 0, "Accepted": 0, "Rejected": 0, "AvTT": 0, "MaxTT": 0 }, "CampaignsIdLinked": CampaignList };
     let data = { action: 'STATUSCHANGE', AnAgent: mySession, newstatus: 'BREAK' };
     let currentStatus = 'BREAK';
     props.Senddata(data);

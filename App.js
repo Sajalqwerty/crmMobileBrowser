@@ -6,6 +6,8 @@ import AppNavigator from './navigation/AppNavigator';
 import Dashboard from './screens/CategoriesScreen';
 import Login from './screens/LoginScreen';
 import CallPopup from './screens/CallPopupScreen';
+import Progress from './screens/ProgressFormScreen';
+import LeadScreen from './screens/LeadFormScreen';
 
 const fetchFonts = () => {
   return Font.loadAsync({
@@ -26,10 +28,11 @@ export default class App extends React.Component {
             mysocket :"",
             response : {},
             agentdata : {},
+            CampaignList : [],
             loggedin : false,
             agentstatus:"currentstatus",
             cdrtdata: "data",
-            CallProgress: "data"
+            CallProgress: {}
         };
         this.socket = new WebSocket('ws://180.179.210.49:6789/');
         console.log('calling constructor');
@@ -61,10 +64,10 @@ export default class App extends React.Component {
             console.log('loggedout')
             this.setState({loggedin : false});
             this.socket.close();
-            props.navigation.navigate('');
           }
           if('ReqAction' in response && response.ReqAction == "CALL_OFFER")
           {
+            this.setState({CallProgress : response})
             this.setState({datafor : 'CallPopup'});
           }
 
@@ -98,6 +101,10 @@ export default class App extends React.Component {
 
     }
 
+    setCampaign = (data) =>{
+      this.setState({CampaignList : data});
+    }
+
   //  const [fontLoading,setFontLoading] = useState(false);
   // if(!fontLoading) {
   //   return (<AppLoading startAsync={fetchFonts} onFinish={() => setFontLoading(true)} />); 
@@ -123,7 +130,7 @@ export default class App extends React.Component {
     switch(this.state.datafor){
       case 'Dashboard' :
       return (
-            <Dashboard Senddata={this.Senddata} response={this.state} navigation={this.navigation} Connect={this.Connect}/>
+            <Dashboard Senddata={this.Senddata} response={this.state} navigation={this.navigation} Connect={this.Connect} setCampaign={this.setCampaign}/>
             // <AppNavigator onWebsocketCall = {this.socket}/>
           );
       break;
@@ -135,7 +142,19 @@ export default class App extends React.Component {
       break;
       case 'CallPopup' :
       return (
-            <CallPopup navigation={this.navigation} response={this.state}/>
+            <CallPopup navigation={this.navigation} response={this.state} Senddata={this.Senddata}/>
+            // <AppNavigator onWebsocketCall = {this.socket}/>
+          );
+      break;
+      case 'LeadScreen' :
+      return (
+            <LeadScreen navigation={this.navigation} response={this.state} Senddata={this.Senddata}/>
+            // <AppNavigator onWebsocketCall = {this.socket}/>
+          );
+      break;
+      case 'ProgressScreen' :
+      return (
+            <Progress navigation={this.navigation} response={this.state} Senddata={this.Senddata}/>
             // <AppNavigator onWebsocketCall = {this.socket}/>
           );
       break;
