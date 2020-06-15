@@ -5,6 +5,7 @@ import { AppLoading } from 'expo';
 import AppNavigator from './navigation/AppNavigator';
 import Dashboard from './screens/CategoriesScreen';
 import Login from './screens/LoginScreen';
+import CallPopup from './screens/CallPopupScreen';
 
 const fetchFonts = () => {
   return Font.loadAsync({
@@ -31,7 +32,8 @@ export default class App extends React.Component {
             CallProgress: "data"
         };
         this.socket = new WebSocket('ws://180.179.210.49:6789/');
-
+        console.log('calling constructor');
+        console.log(this.socket);
         this.socket.onopen = () => {
           console.log("Connected with socket :" + this.socket)
           this.setState({connected : true});
@@ -43,19 +45,28 @@ export default class App extends React.Component {
           this.setState({connected : false});
         }
 
-
         this.socket.onmessage = (event) => {
-          try {
+          console.log('getting response from websocket in on message');
+        try {
             let response = JSON.parse(event.data);
             this.setState({response: response});
 
             console.log('in message')
             console.log(this.state.response);
-          
+
+         if(this.state.loggedin == false && ('data' in response && response.data != 'AVAILABLE')){
+              this.setState({loggedin : true});
+          }
           if('data' in response && response.data == "LOGGED-OUT"){
             console.log('loggedout')
             this.setState({loggedin : false});
-            }
+            this.socket.close();
+            props.navigation.navigate('');
+          }
+          if('ReqAction' in response && response.ReqAction == "CALL_OFFER")
+          {
+            this.setState({datafor : 'CallPopup'});
+          }
 
           }
           catch(e){
@@ -98,6 +109,16 @@ export default class App extends React.Component {
 
   render() {
     console.log('calling render');
+    console.log(this.socket.readyState);
+    if(this.socket.readyState == 3){
+          try{
+            console.log('conecting to socket');
+              // this.socket = new WebSocket('ws://180.179.210.49:6789/');
+          }
+          catch(e){
+            console.log('Voice Not Connected');
+          }  
+        }
     
     switch(this.state.datafor){
       case 'Dashboard' :
@@ -109,6 +130,12 @@ export default class App extends React.Component {
       case 'Login' :
       return (
             <Login navigation={this.navigation} setAgentData = {this.setAgentData}/>
+            // <AppNavigator onWebsocketCall = {this.socket}/>
+          );
+      break;
+      case 'CallPopup' :
+      return (
+            <CallPopup navigation={this.navigation} response={this.state}/>
             // <AppNavigator onWebsocketCall = {this.socket}/>
           );
       break;
