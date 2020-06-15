@@ -98,6 +98,7 @@ export default class App extends React.Component {
 
   render() {
     console.log('calling render');
+    // console.log(this.state);
     
     switch(this.state.datafor){
       case 'Dashboard' :

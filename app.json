@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "crmMobileBrowser",
-    "slug": "crmMobileBrowser",
+    "name": "AgentApp",
+    "slug": "agentapp",
     "platforms": [
       "ios",
       "android",
@@ -27,6 +27,7 @@
     "android": {
       "package": "com.digialaya.crmMobileBrowser",
       "versionCode": 1
-    }
+    },
+    "description": "To test the native app by publishing"
   }
 }
