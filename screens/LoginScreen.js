@@ -19,23 +19,14 @@ const setSessionData = async(data) => {
     console.log('session set');
 }
 
-const tryLogin = async () => {
-
-    const userData = await AsyncStorage.getItem('userData');
-    
-    if(!userData) {
-        props.navigation('Login');
-        return false;
-    }
-}
 
 const LoginScreen = props => {
- // tryLogin();
+ const [loader, setLoader] = useState(false); 
  const [email, setEmail] = useState('');
  const [password, setPassword] = useState('');
 
     const LoginByAjax = (email,password) => {
-        
+        setLoader(true);
         fetch('http://devcc.digialaya.com/WebServices/getAgentDataApi', {
         body: JSON.stringify({
             'email' : email,
@@ -47,6 +38,7 @@ const LoginScreen = props => {
         return response.json();
         })
         .then((jsonObject) => {
+            setLoader(false);
             if(jsonObject['status'] == 'success'){
                 console.log('setting session');
                 setSessionData(jsonObject['data']);
@@ -71,8 +63,13 @@ const LoginScreen = props => {
     }
 
     return(
+      <View>
+      {loader && 
+        (<View style={styles.loader}>
+         <Image style={styles.logoloader} source={{ uri: "http://devcc.digialaya.com/common/loginSignup/images/dot-transparent.gif" }} />
+        </View>)
+      }
         <View style={styles.screen}>
-        
          <Image style={styles.logoImage} source={{ uri: 'http://devcc.digialaya.com/common/loginSignup/images/DigialayaLogo.png' }}/>
         <View style={styles.textInputView}>
           <Ionicons name='ios-mail' size={22} style={styles.icon} />
@@ -98,7 +95,7 @@ const LoginScreen = props => {
         </View>
         <Button title="Login" color={Colors.PRIMARY_COLOR} onPress={() => {LoginByAjax(email,password)}} />
         </View>
-
+      </View>
     );
 };
 
@@ -135,6 +132,19 @@ const styles = StyleSheet.create({
         width: "85%",
         marginVertical: 20,
     },
+    logoloader: {
+        height: 60,
+        width: "85%",
+        marginTop: 200,
+        marginLeft : 20
+    },
+    loader : {
+      position : 'absolute',
+      height : '200%',
+      width : '100%',
+      backgroundColor : '#00000052',
+      zIndex : 100000,
+    }
 });
 
 

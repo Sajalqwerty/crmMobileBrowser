@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, Button, TextInput, ScrollView,FlatList } from '
 import * as Font from 'expo-font';
 import { AppLoading } from 'expo';
 import AppNavigator from './navigation/AppNavigator';
-import Dashboard from './screens/CategoriesScreen';
+import Dashboard from './screens/DashboardScreen';
 import Login from './screens/LoginScreen';
 import CallPopup from './screens/CallPopupScreen';
 import Progress from './screens/ProgressFormScreen';
@@ -37,8 +37,7 @@ export default class App extends React.Component {
             CallProgress: {}
         };
         this.socket = new WebSocket('ws://180.179.210.49:6789/');
-        console.log('calling constructor');
-        console.log(this.socket);
+        
         this.socket.onopen = () => {
           console.log("Connected with socket :" + this.socket)
           this.setState({connected : true});
@@ -126,11 +125,9 @@ export default class App extends React.Component {
   //       );
 
   render() {
-    console.log('calling render');
-    console.log(this.socket.readyState);
-    if(this.socket.readyState == 3){
+        
+        if(this.socket.readyState == 3){
           try{
-            console.log('conecting to socket');
             window.location.reload();
               // this.socket = new WebSocket('ws://180.179.210.49:6789/');
           }
