@@ -1,5 +1,5 @@
 import React,{useState} from 'react';
-import { StyleSheet, Text, View,Image,Button,AsyncStorage } from 'react-native';
+import { StyleSheet, Text, View,Image,Button,ScrollView } from 'react-native';
 import Colors from '../Constants/Colors';
 
 
@@ -41,6 +41,11 @@ const getLeadByNumber = (MobileNum,CampaignSelected) => {
         });
     }
 
+ const BackToLead = () =>{
+
+     getLeadByNumber(callingData.CallerNum,callingData.CampaignId);
+ }   
+
 setTimeout(function(){
 
 if('ReqAction' in props.response.response && props.response.response.ReqAction == "CALL_OFFER")
@@ -51,6 +56,7 @@ if('ReqAction' in props.response.response && props.response.response.ReqAction =
 }
 else if('ProgressAction' in props.response.response && props.response.response.ProgressAction == "ON-CALL")
 {
+    console.log(props.response.response);
     if(props.response.leadadded == false){
         getLeadByNumber(callingData.CallerNum,callingData.CampaignId);
         setCallingState(1);
@@ -118,12 +124,13 @@ return (
     // </View>
     // </View>
     // </View>
-
+    <ScrollView>
+    <View color={Colors.DANGER_COLOR} style={styles.header}><Text style={styles.headertext}>New Call</Text></View>
     <View style = {styles.screen}>
     <View style={styles.callDetails}>
     <Text style={styles.callDetailText}>{callingData.CallerNum}</Text>
     </View>
-    <Image style={styles.logoImage} source={{ uri: 'http://devcc.digialaya.com/common/profilePic/callingperson.png' }}/>
+    <Image style={styles.logoImage} source={require('../assets/callingperson.png')}/>
     
     {callingState == 0 && (<View style={styles.buttonView} >
     <View style={styles.callingbuttons} >
@@ -136,21 +143,38 @@ return (
 
     { callingState == 1 &&
       (<View style={styles.Dissconnect} >
-    <Button title="Dissconnect" color={Colors.DANGER_COLOR} onPress={() => CallDiscopnnect(AgentSession)}/>
+        <View style={styles.subbtn}>
+            <Button title="Disconnect" color={Colors.DANGER_COLOR} onPress={() => CallDiscopnnect(AgentSession)}/>
+        </View>
+        <View style={styles.subbtn}>
+            <Button title="Update Interaction" color={Colors.BACK_COLOR} onPress={() => BackToLead(AgentSession)}/>
+        </View>
     </View>) }
     
     { callingState == 2 &&
 
-    (<View style={styles.Dissconnect} >
-    <Button title="Release" color={Colors.DANGER_COLOR} onPress={() => CallRelease(AgentSession)}/>
+    (<View style={styles.Release} >
+    <Button title="Release" style={styles.Releasebtn} color={Colors.DANGER_COLOR} onPress={() => CallRelease(AgentSession)}/>
     </View>)
     }
     </View>
+    </ScrollView>
 );
 
 };
 
 const styles = StyleSheet.create({
+    header : {
+      width : '100%',
+      height : 80,
+      backgroundColor : Colors.DANGER_COLOR,
+      alignItems: 'center',
+    },
+    headertext :{
+      color : '#fff',
+      fontSize : 20,
+      marginTop : 35,
+    },
     screen: {
         flex: 1,
         marginTop: "30%",
@@ -179,6 +203,20 @@ const styles = StyleSheet.create({
     callDetailText:{
         fontSize: 20,
         fontWeight: '100',
+    },
+    Dissconnect:{
+      marginVertical : 20,
+      width : '110%',
+      flexDirection : 'row',
+    },
+    Release:{
+      marginVertical : 20,
+      width : '50%',
+    },
+    subbtn :{
+        flex : 1,
+        width : '50%',
+        marginRight : 10
     }
 });
 

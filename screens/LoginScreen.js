@@ -1,23 +1,8 @@
 import React, { useState} from 'react';
 import Colors from '../Constants/Colors';
-import { StyleSheet, Text, View, Button, TextInput,Image,AsyncStorage,Alert } from 'react-native';
+import { StyleSheet, Text, View, Button, TextInput,Image,Alert,ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-
-
-const setSessionData = async(data) => {
-    AsyncStorage.setItem('userData',JSON.stringify({
-                 'UserId' : data.Users_Id,
-                 'UserName' : data.Users_Username,
-                 'Email' : data.Users_Email,
-                 'Mobile' : data.Users_Mobile,
-                 'EnterpriseId' : data.Users_EnterpriseId,
-                 'SubEnterpriseId' : data.Users_SubEnterpriseId,
-                 'RoleId' : data.Users_Role,
-                 'Role' : data.AgentsGroup_Role,
-             }));
-    console.log('session set');
-}
 
 
 const LoginScreen = props => {
@@ -27,6 +12,11 @@ const LoginScreen = props => {
 
     const LoginByAjax = (email,password) => {
         setLoader(true);
+
+        if(email == '' || password == ''){
+          Alert.alert('Error','Please enter valid emailid and password');
+          return false;
+        }
         fetch('http://devcc.digialaya.com/WebServices/getAgentDataApi', {
         body: JSON.stringify({
             'email' : email,
@@ -41,7 +31,6 @@ const LoginScreen = props => {
             setLoader(false);
             if(jsonObject['status'] == 'success'){
                 console.log('setting session');
-                setSessionData(jsonObject['data']);
                 let session = {
                  'UserId' : jsonObject['data'].Users_Id,
                  'UserName' : jsonObject['data'].Users_Username,
@@ -64,13 +53,8 @@ const LoginScreen = props => {
 
     return(
       <View>
-      {loader && 
-        (<View style={styles.loader}>
-         <Image style={styles.logoloader} source={{ uri: "http://devcc.digialaya.com/common/loginSignup/images/dot-transparent.gif" }} />
-        </View>)
-      }
         <View style={styles.screen}>
-         <Image style={styles.logoImage} source={{ uri: 'http://devcc.digialaya.com/common/loginSignup/images/DigialayaLogo.png' }}/>
+         <Image style={styles.logoImage} source={require('../assets/DigialayaLogo.png')}/>
         <View style={styles.textInputView}>
           <Ionicons name='ios-mail' size={22} style={styles.icon} />
           <TextInput 
@@ -93,7 +77,11 @@ const LoginScreen = props => {
           onChangeText={text => setPassword(text)}
           />
         </View>
-        <Button title="Login" color={Colors.PRIMARY_COLOR} onPress={() => {LoginByAjax(email,password)}} />
+
+        {loader ?
+        <ActivityIndicator size="large" color={Colors.DANGER_COLOR}></ActivityIndicator> :
+        <Button title="Login" color={Colors.PRIMARY_COLOR} onPress={() => {LoginByAjax(email,password)}} />}
+
         </View>
       </View>
     );
@@ -133,14 +121,14 @@ const styles = StyleSheet.create({
         marginVertical: 20,
     },
     logoloader: {
-        height: 60,
+        height: 100,
         width: "85%",
         marginTop: 200,
         marginLeft : 20
     },
     loader : {
       position : 'absolute',
-      height : '200%',
+      height : 1500,
       width : '100%',
       backgroundColor : '#00000052',
       zIndex : 100000,

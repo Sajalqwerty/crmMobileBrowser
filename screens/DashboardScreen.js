@@ -165,10 +165,11 @@ const DashboardScreen = props => {
 
 return (
       <ScrollView>
-      <View style={styles.screen}>
+      <View color={Colors.DANGER_COLOR} style={styles.header}><Text style={styles.headertext}>Status : Waiting for a new Call </Text></View>
+    <View style={styles.screen}>
     <View style={styles.parenttile}>
       <View style={styles.tile}>
-      <Text style={styles.itemstext} style={styles.itemstext}>Total Calls</Text>
+      <Text style={styles.itemstextheader}>Total Calls</Text>
       </View>
       <View style={styles.tile}>
       <Text style={styles.itemstext}>{totalCalls}</Text>
@@ -176,7 +177,7 @@ return (
     </View>
     <View style={styles.parenttile}>
       <View style={styles.tile}>
-      <Text style={styles.itemstext}>Accepted</Text>
+      <Text style={styles.itemstextheader}>Accepted</Text>
       </View>
       <View style={styles.tile}>
       <Text style={styles.itemstext}>{accepted}</Text>
@@ -184,7 +185,7 @@ return (
     </View>
     <View style={styles.parenttile}>
       <View style={styles.tile}>
-      <Text style={styles.itemstext}>Rejected</Text>
+      <Text style={styles.itemstextheader}>Rejected</Text>
       </View>
       <View style={styles.tile}>
       <Text style={styles.itemstext}>{rejected}</Text>
@@ -192,7 +193,7 @@ return (
     </View>
     <View style={styles.parenttile}>
       <View style={styles.tile}>
-      <Text style={styles.itemstext}>Login Date</Text>
+      <Text style={styles.itemstextheader}>Login Date</Text>
       </View>
       <View style={styles.tile}>
       <Text style={styles.itemstext}>{loginDate}</Text>
@@ -200,7 +201,7 @@ return (
     </View>
     <View style={styles.parenttile}>
       <View style={styles.tile}>
-      <Text style={styles.itemstext}>Login Time</Text>
+      <Text style={styles.itemstextheader}>Login Time</Text>
       </View>
       <View style={styles.tile}>
       <Text style={styles.itemstext}>{loginTime}</Text>
@@ -208,7 +209,7 @@ return (
     </View>
     <View style={styles.parenttile}>
       <View style={styles.tile}>
-      <Text style={styles.itemstext}>Avtt</Text>
+      <Text style={styles.itemstextheader}>Avtt</Text>
       </View>
       <View style={styles.tile}>
       <Text style={styles.itemstext}>{avtt}</Text>
@@ -216,7 +217,7 @@ return (
     </View>
     <View style={styles.parenttile}>
       <View style={styles.tile}>
-      <Text style={styles.itemstext}>Maxtt</Text>
+      <Text style={styles.itemstextheader}>Maxtt</Text>
       </View>
       <View style={styles.tile}>
       <Text style={styles.itemstext}>{maxtt}</Text>
@@ -242,6 +243,17 @@ return (
 };
 
 const styles = StyleSheet.create({
+    header : {
+      width : '100%',
+      height : 80,
+      backgroundColor : Colors.DANGER_COLOR,
+      alignItems: 'center',
+    },
+    headertext :{
+      color : '#fff',
+      fontSize : 20,
+      marginTop : 35,
+    },
     screen: {
         marginTop : "15%",
         marginHorizontal : 10,
@@ -250,8 +262,7 @@ const styles = StyleSheet.create({
         flexDirection : 'row'
     },
     tile : {
-        backgroundColor : Colors.DANGER_COLOR,
-        borderColor: '#ccc',
+        borderColor: 'black',
         borderWidth: 1,
         alignItems: 'center',
         justifyContent : 'center',
@@ -259,9 +270,15 @@ const styles = StyleSheet.create({
         flex : 1,
     },
     itemstext :{
-        color : '#fff',
+        color : 'black',
         fontSize : 20,
     },
+    itemstextheader :{
+        color : 'black',
+        fontSize : 20,
+        fontWeight : "bold",
+    },
+
     buttonView: {
         flexDirection : "row",
         marginTop: 20,

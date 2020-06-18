@@ -11,8 +11,8 @@ const [email, setEmail] = useState('');
 const [remarks, setRemarks] = useState('');
 const [leadId, setLeadId] = useState('');
 const [status, setStatus] = useState('');
-const [fetchStatus, setFetchStatus] = useState([{label: '-- Select Status --', value: ''}]);
-const StatusName = '';
+const [fetchStatus, setFetchStatus] = useState([{label: '-- Select Status --', value: '0'}]);
+const StatusName = '0';
 const [statusVal,setStatusVal] = useState('');
 
 const AgentSession = props.response.agentdata;
@@ -100,7 +100,11 @@ changeStatus({'StatusName' : LeadData.StatusName});
 }
 
 return (
-    <ScrollView style = {styles.screen}>
+    <ScrollView>
+    <View color={Colors.DANGER_COLOR} style={styles.header}><Text style={styles.headertext}>Interaction</Text></View>
+    
+    <View style = {styles.screen}>
+
     <View style={styles.textInputView}>
         <TextInput 
           placeholder="First Name"
@@ -172,26 +176,39 @@ return (
             <Button title="Add Progress" color={Colors.PRIMARY_COLOR} onPress ={() => addProgress(AgentSession)}/>
           </View>
           <View style={styles.subbtn}>
-            <Button title="Back To Call" color={Colors.DANGER_COLOR} onPress ={() => backtocall()}/>
+            <Button title="Call Control" color={Colors.BACK_COLOR} onPress ={() => backtocall()}/>
           </View>
         </View>
-        
+      
+      </View>  
     </ScrollView>
 );
 
 };
 
 const styles = StyleSheet.create({
+  header : {
+      width : '100%',
+      height : 80,
+      backgroundColor : Colors.DANGER_COLOR,
+      alignItems: 'center',
+    },
+    headertext :{
+      color : '#fff',
+      fontSize : 20,
+      marginTop : 35,
+    },
     screen: {
         flex: 1,
-        marginTop: "25%",
+        marginTop: "20%",
         marginHorizontal: 10,
     },
     textInput: {
         width: '90%'
     },
     addBtn: {       
-        margin: 5,
+        marginRight : 10,
+        marginTop : 50,
         width : '90%',
         flexDirection: 'row',
     },

@@ -7,8 +7,8 @@ import DropDownPicker from 'react-native-dropdown-picker';
 const LeadFormScreen = props => {
 
 const [campaignList, setCampaignList] = useState([]);
-const [fetchCampaign, setFetchCampaign] = useState([{label: '-- Select Campaign --', value: ''}]);
-const [fetchStatus, setFetchStatus] = useState([{label: '-- Select Status --', value: ''}]);
+const [fetchCampaign, setFetchCampaign] = useState([{label: '-- Select Campaign --', value: '0'}]);
+const [fetchStatus, setFetchStatus] = useState([{label: '-- Select Status --', value: '0'}]);
 
 const [fname, setFname] = useState('');
 const [campaign, setCampaign] = useState('');
@@ -17,8 +17,8 @@ const [email, setEmail] = useState('');
 const [description, setDescription] = useState('');
 const [mobile, setMobile] = useState('');
 const [status, setStatus] = useState('');
-const campaignName = '';
-const StatusName = '';
+const campaignName = '0';
+const StatusName = '0';
 
 const [campaignVal,setCampaignVal] = useState('');
 const [statusVal,setStatusVal] = useState('');
@@ -41,6 +41,13 @@ const backtocall = () => {
 }
 
 useEffect(()=>{
+ 
+ const response = props.response.response;
+
+  if('ProgressAction' in response && response.ProgressAction == "ON-CALL")
+  {
+    setMobile(response.AgentExtension);
+  }
 
  fetch('http://devcc.digialaya.com/WebServices/getCampaignApi/'+AgentSession.UserId+'/'+AgentSession.EnterpriseId+'/'+AgentSession.SubEnterpriseId, {
   method: 'post',
@@ -51,8 +58,8 @@ useEffect(()=>{
   .then((jsonObject) => {
     console.log(jsonObject);
       let camparr = [];
-      let campoption = [{label: '-- Select Campaign --', value: ''}];
-      let statusoption = [{label: '-- Select Status --', value: ''}];
+      let campoption = [{label: '-- Select Campaign --', value: '0'}];
+      let statusoption = [{label: '-- Select Status --', value: '0'}];
       if(jsonObject['status'] == 'success'){
 
         let Campaign = jsonObject['data']['Campaign'];
@@ -119,8 +126,10 @@ const addLead = (AgentSession) =>{
 
 
 return (
-    <ScrollView style = {styles.screen}>
-        <View >
+    <ScrollView>
+      <View color={Colors.DANGER_COLOR} style={styles.header}><Text style={styles.headertext}>Interaction</Text></View>
+        <View style = {styles.screen}>
+        <View>
         <DropDownPicker
          items={fetchCampaign}
         defaultValue={campaignName}
@@ -208,22 +217,34 @@ return (
     
         <View style={styles.addBtn}>
           <View style={styles.subbtn}>
-            <Button title="Add Lead" color={Colors.PRIMARY_COLOR} onPress ={() => addLead(AgentSession)}/>
+            <Button title="Update" color={Colors.PRIMARY_COLOR} onPress ={() => addLead(AgentSession)}/>
           </View>
           <View style={styles.subbtn}>
-            <Button title="Back To Call" color={Colors.DANGER_COLOR} onPress ={() => backtocall()}/>
+            <Button title="Call Control" color={Colors.BACK_COLOR} onPress ={() => backtocall()}/>
           </View>
         </View>
 
+        </View>
     </ScrollView>
 );
 
 };
 
 const styles = StyleSheet.create({
+  header : {
+      width : '100%',
+      height : 80,
+      backgroundColor : Colors.DANGER_COLOR,
+      alignItems: 'center',
+    },
+    headertext :{
+      color : '#fff',
+      fontSize : 20,
+      marginTop : 35,
+    },
     screen: {
         flex: 1,
-        marginTop: "20%",
+        marginTop: "3%",
         marginHorizontal: 20,
     },
     textInput: {

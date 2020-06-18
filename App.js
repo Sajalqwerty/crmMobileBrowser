@@ -8,6 +8,7 @@ import Login from './screens/LoginScreen';
 import CallPopup from './screens/CallPopupScreen';
 import Progress from './screens/ProgressFormScreen';
 import LeadScreen from './screens/LeadFormScreen';
+import VoiceError from './screens/VoiceErrorScreen';
 
 const fetchFonts = () => {
   return Font.loadAsync({
@@ -21,7 +22,12 @@ export default class App extends React.Component {
 
   constructor() {
         super();
-        this.state = {
+        
+        this.main();
+    }
+
+    main = () =>{
+      this.state = {
             datafor: "Login",
             open: false,
             connected : false,
@@ -58,19 +64,33 @@ export default class App extends React.Component {
             console.log('in message')
             console.log(this.state.response);
 
-         if(this.state.loggedin == false && ('data' in response && response.data != 'AVAILABLE')){
-              this.setState({loggedin : true});
-          }
-          if('data' in response && response.data == "LOGGED-OUT"){
-            console.log('loggedout')
-            this.setState({loggedin : false});
-            this.socket.close();
-          }
-          if('ReqAction' in response && response.ReqAction == "CALL_OFFER")
-          {
-            this.setState({CallProgress : response})
-            this.setState({datafor : 'CallPopup'});
-          }
+           if(this.state.loggedin == false && ('data' in response && response.data != 'AVAILABLE')){
+                this.setState({loggedin : true});
+            }
+            if('data' in response && response.data == "LOGGED-OUT"){
+              console.log('loggedout')
+              this.setState({loggedin : false});
+              this.socket.close();
+            }
+            if('ReqAction' in response && response.ReqAction == "CALL_OFFER")
+            {
+              this.setState({CallProgress : response})
+              this.setState({datafor : 'CallPopup'});
+            }
+            if("action" in response &&  response.action == "CALL_HANGUP")
+            {
+              let mySession = { "reqid": this.state.CallProgress.reqid, "AgentId":AgentSession.UserId, "AgentExtension":AgentSession.Mobile, "CallerNum":this.state.CallProgress.CallerNum, "CampaignId":this.state.CallProgress.CampaignId,"ProgressAction": "CALL_DISCONNECT", "ActionTime": this.state.CallProgress.ActionTime};
+              let data = { action: 'CALL_DISCONNECT', 'CallProgress': mySession };
+              this.Senddata(data);  
+
+              setTimeOut(function(){
+                let mySession = { "reqid": this.state.CallProgress.reqid, "AgentId":AgentSession.UserId, "AgentExtension":AgentSession.UserId, "CallerNum":this.state.CallProgress.CallerNum, "CampaignId":this.state.CallProgress.CampaignId,"ProgressAction": "CALL_RELEASED", "ActionTime": this.state.CallProgress.ActionTime};
+                let res = {'action':'CALL_RELEASED', 'CallProgress': mySession };
+                this.Senddata(res);
+                this.navigation('Dashboard');
+              },1000)
+
+            }
 
           }
           catch(e){
@@ -79,7 +99,7 @@ export default class App extends React.Component {
               console.log(e)
           }
         }
-        
+      
     }
 
 
@@ -115,6 +135,13 @@ export default class App extends React.Component {
 
     }
 
+    Reconnect = () =>{
+      console.log('in Reconnect')
+      // this.socket = new WebSocket('ws://180.179.210.49:6789/');
+      this.main();
+      this.navigation('Login');
+    }
+
   //  const [fontLoading,setFontLoading] = useState(false);
   // if(!fontLoading) {
   //   return (<AppLoading startAsync={fetchFonts} onFinish={() => setFontLoading(true)} />); 
@@ -125,13 +152,13 @@ export default class App extends React.Component {
   //       );
 
   render() {
-        
+
         if(this.socket.readyState == 3){
           try{
-            window.location.reload();
-              // this.socket = new WebSocket('ws://180.179.210.49:6789/');
+              this.navigation('VoiceError');
           }
           catch(e){
+            console.log(e)
             console.log('Voice Not Connected');
           }  
         }
@@ -148,27 +175,28 @@ export default class App extends React.Component {
       case 'Login' :
       return (
             <Login navigation={this.navigation} setAgentData = {this.setAgentData}/>
-            // <AppNavigator onWebsocketCall = {this.socket}/>
           );
       break;
       case 'CallPopup' :
       return (
             <CallPopup navigation={this.navigation} response={this.state} Senddata={this.Senddata} setLeadData={this.setLeadData}/>
-            // <AppNavigator onWebsocketCall = {this.socket}/>
           );
       break;
       case 'LeadScreen' :
       return (
             <LeadScreen navigation={this.navigation} response={this.state} Senddata={this.Senddata} setLeadAdded={this.setLeadAdded}/>
-            // <AppNavigator onWebsocketCall = {this.socket}/>
           );
       break;
       case 'ProgressScreen' :
       return (
             <Progress navigation={this.navigation} response={this.state} Senddata={this.Senddata} setLeadAdded={this.setLeadAdded}/>
-            // <AppNavigator onWebsocketCall = {this.socket}/>
           );
       break;
+      case 'VoiceError':
+      return (
+            <VoiceError navigation={this.navigation} Reconnect={this.Reconnect}/>
+          );
+      break; 
     }
   } 
 }
