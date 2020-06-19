@@ -2,7 +2,6 @@ import React, { Component , useState} from 'react';
 import { StyleSheet, Text, View, Button, TextInput, ScrollView,FlatList } from 'react-native';
 import * as Font from 'expo-font';
 import { AppLoading } from 'expo';
-import AppNavigator from './navigation/AppNavigator';
 import Dashboard from './screens/DashboardScreen';
 import Login from './screens/LoginScreen';
 import CallPopup from './screens/CallPopupScreen';
