@@ -11,12 +11,12 @@ const LoginScreen = props => {
  const [password, setPassword] = useState('');
 
     const LoginByAjax = (email,password) => {
-        setLoader(true);
 
         if(email == '' || password == ''){
           Alert.alert('Error','Please enter valid emailid and password');
           return false;
         }
+        setLoader(true);
         fetch('http://devcc.digialaya.com/WebServices/getAgentDataApi', {
         body: JSON.stringify({
             'email' : email,
