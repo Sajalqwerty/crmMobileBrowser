@@ -17,7 +17,7 @@ const LoginScreen = props => {
           return false;
         }
         setLoader(true);
-        fetch('http://devcc.digialaya.com/WebServices/getAgentDataApi', {
+        fetch('http://contactcenter.digialaya.com/WebServices/getAgentDataApi', {
         body: JSON.stringify({
             'email' : email,
             'password' : password,
@@ -30,7 +30,15 @@ const LoginScreen = props => {
         .then((jsonObject) => {
             setLoader(false);
             if(jsonObject['status'] == 'success'){
-                console.log('setting session');
+                let iparr = [];
+                let ip = '';
+                let port = '';
+                if(jsonObject['data'].LicenseJSON != null)
+                {
+                  iparr = JSON.parse(jsonObject['data'].LicenseJSON);
+                  ip = iparr.IpAddress;
+                  port = iparr.PortNumber;
+                }
                 let session = {
                  'UserId' : jsonObject['data'].Users_Id,
                  'UserName' : jsonObject['data'].Users_Username,
@@ -41,6 +49,7 @@ const LoginScreen = props => {
                  'RoleId' : jsonObject['data'].Users_Role,
                  'Role' : jsonObject['data'].AgentsGroup_Role,
                 }
+                props.main(ip,port)
                 props.setAgentData(session);
                 props.navigation('Dashboard');
                 return;

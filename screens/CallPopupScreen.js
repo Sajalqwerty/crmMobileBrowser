@@ -13,7 +13,7 @@ const CampaignList = props.response.CampaignList;
 
 const getLeadByNumber = (MobileNum,CampaignSelected) => {
     console.log('in getLeadByNumber');
-    fetch('http://devcc.digialaya.com/WebServices/getLeadbyNumberApi', {
+    fetch('http://contactcenter.digialaya.com/WebServices/getLeadbyNumberApi', {
         body: JSON.stringify({
             'CustomerExt' : MobileNum,
             'CampaignId' : CampaignSelected,
@@ -114,7 +114,7 @@ return (
     // <Text style={styles.callDetailText}>+91 8077140282</Text>
     // <Text style={styles.callDetailText}>00:00</Text>
     // </View>
-    // <Image style={styles.logoImage} source={{ uri: 'http://devcc.digialaya.com/common/profilePic/callingperson.png' }}/>
+    // <Image style={styles.logoImage} source={{ uri: 'http://contactcenter.digialaya.com/common/profilePic/callingperson.png' }}/>
     // <View style={styles.buttonView} >
     // <View style={styles.callingbuttons} >
     // <Button title="Accept" color={Colors.SUCCESS_COLOR}/>

@@ -38,7 +38,7 @@ setLeadId(LeadData.LeadId);
 setEmail(LeadData.Email);
 changeStatus({'StatusName' : LeadData.StatusName});
 
- fetch('http://devcc.digialaya.com/WebServices/getCampaignApi/'+AgentSession.UserId+'/'+AgentSession.EnterpriseId+'/'+AgentSession.SubEnterpriseId, {
+ fetch('http://contactcenter.digialaya.com/WebServices/getCampaignApi/'+AgentSession.UserId+'/'+AgentSession.EnterpriseId+'/'+AgentSession.SubEnterpriseId, {
   method: 'post',
   async : false,
   }).then((response) => {
@@ -70,7 +70,7 @@ changeStatus({'StatusName' : LeadData.StatusName});
 
  const addProgress = (AgentSession) => {
       
-  fetch('http://devcc.digialaya.com/WebServices/addLeadProgressApi', {
+  fetch('http://contactcenter.digialaya.com/WebServices/addLeadProgressApi', {
     body: JSON.stringify({
         'Lead_LeadStatus' : statusVal,
         'Lead_Id' : leadId,

@@ -22,10 +22,7 @@ export default class App extends React.Component {
   constructor() {
         super();
         
-        this.main();
-    }
-
-    main = () =>{
+        // this.main();
       this.state = {
             datafor: "Login",
             open: false,
@@ -37,11 +34,19 @@ export default class App extends React.Component {
             CampaignList : [],
             loggedin : false,
             leadadded : false,
+            norespose : '',
             agentstatus:"currentstatus",
             cdrtdata: "data",
-            CallProgress: {}
+            CallProgress: {},
+            uuid : "",
         };
-        this.socket = new WebSocket('ws://180.179.210.49:6789/');
+    }
+
+    main = (ip,port) =>{
+        
+        let socketurl = 'ws://'+ip+':'+port+'/';
+        console.log(socketurl)
+        this.socket = new WebSocket(socketurl);
         
         this.socket.onopen = () => {
           console.log("Connected with socket :" + this.socket)
@@ -73,10 +78,27 @@ export default class App extends React.Component {
             }
             if('ReqAction' in response && response.ReqAction == "CALL_OFFER")
             {
+              this.setState({uuid : response.reqid})
               this.setState({CallProgress : response})
               this.setState({datafor : 'CallPopup'});
             }
-            if("action" in response &&  response.action == "CALL_HANGUP")
+            if('data' in response && response.data == "LOGGED-OUT"){
+              this.state.norespose = setTimeOut(function(){
+                                  let mySessionData = { "reqid": this.state.CallProgress.reqid, "AgentId":AgentSession.UserId, "AgentExtension":AgentSession.Mobile, "CallerNum":this.state.CallProgress.CallerNum, "CampaignId":this.state.CallProgress.CampaignId,"ProgressAction": "CALL_DISCONNECT", "ActionTime": this.state.CallProgress.ActionTime};
+                                  let calldata = { action: 'CALL_DISCONNECT', 'CallProgress': mySessionData };
+                                  this.Senddata(calldata);  
+
+                                  let mySession = { "reqid": this.state.CallProgress.reqid, "AgentId":AgentSession.UserId, "AgentExtension":AgentSession.UserId, "CallerNum":this.state.CallProgress.CallerNum, "CampaignId":this.state.CallProgress.CampaignId,"ProgressAction": "CALL_RELEASED", "ActionTime": this.state.CallProgress.ActionTime};
+                                  let res = {'action':'CALL_RELEASED', 'CallProgress': mySession };
+                                  this.Senddata(res);
+                                  this.navigation('Dashboard');
+                                },3000);
+            }
+            if('ProgressAction' in response && response.ProgressAction == "ON-CALL" && response.reqid == this.state.uuid)
+            {
+              clearTimeout(this.state.norespose);
+            }
+            if("action" in response &&  response.action == "CALL_HANGUP" && response.reqid == this.state.uuid)
             {
               let mySession = { "reqid": this.state.CallProgress.reqid, "AgentId":AgentSession.UserId, "AgentExtension":AgentSession.Mobile, "CallerNum":this.state.CallProgress.CallerNum, "CampaignId":this.state.CallProgress.CampaignId,"ProgressAction": "CALL_DISCONNECT", "ActionTime": this.state.CallProgress.ActionTime};
               let data = { action: 'CALL_DISCONNECT', 'CallProgress': mySession };
@@ -110,6 +132,9 @@ export default class App extends React.Component {
     }
 
     navigation = (data) => {
+      if(data == 'VoiceError'){
+        delete this.socket;
+      }
       this.setState({datafor : data});
     }
 
@@ -136,8 +161,6 @@ export default class App extends React.Component {
 
     Reconnect = () =>{
       console.log('in Reconnect')
-      // this.socket = new WebSocket('ws://180.179.210.49:6789/');
-      this.main();
       this.navigation('Login');
     }
 
@@ -151,6 +174,7 @@ export default class App extends React.Component {
   //       );
 
   render() {
+      if('socket' in this){
 
         if(this.socket.readyState == 3){
           try{
@@ -161,6 +185,7 @@ export default class App extends React.Component {
             console.log('Voice Not Connected');
           }  
         }
+      }
     
     <AppLoading startAsync={fetchFonts} />
 
@@ -173,7 +198,7 @@ export default class App extends React.Component {
       break;
       case 'Login' :
       return (
-            <Login navigation={this.navigation} setAgentData = {this.setAgentData}/>
+            <Login navigation={this.navigation} setAgentData = {this.setAgentData} main ={this.main}/>
           );
       break;
       case 'CallPopup' :

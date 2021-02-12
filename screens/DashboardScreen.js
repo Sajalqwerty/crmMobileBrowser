@@ -96,7 +96,7 @@ const DashboardScreen = props => {
   useEffect(() =>{
       props.setLeadAdded(false);
       let AgentSession = props.response.agentdata;
-      fetch('http://devcc.digialaya.com/WebServices/getCampaignApi/'+AgentSession.UserId+'/'+AgentSession.EnterpriseId+'/'+AgentSession.SubEnterpriseId, {
+      fetch('http://contactcenter.digialaya.com/WebServices/getCampaignApi/'+AgentSession.UserId+'/'+AgentSession.EnterpriseId+'/'+AgentSession.SubEnterpriseId, {
         method: 'post',
         async : false,
         }).then((response) => {
@@ -113,14 +113,9 @@ const DashboardScreen = props => {
                 for(var i=0; i < Campaign.length; i++){
                   camparr.push(Campaign[i].Campaign_Id);
                 }
-                props.setCampaign(camparr);
-
-                if(props.response.loggedin == false){
-
-                  Login(AgentSession,camparr);
-                }
+                console.log('calling getproduct')
+                getProducts(camparr);
                 
-                AgentSessionData(AgentSession,camparr);
               }
             }
             else{
@@ -128,7 +123,38 @@ const DashboardScreen = props => {
             }
         });
     },[]) 
-    
+  
+  const getProducts = (CampArr) => {
+      
+      let AgentSession = props.response.agentdata;
+
+      fetch('http://contactcenter.digialaya.com/WebServices/getAllproductsApi/', {
+        body: JSON.stringify({'CampArr' : CampArr}),
+        method: 'post',
+        async : false,
+        }).then((response) => {
+        return response.json();
+        })
+        .then((jsonObject) => {
+          let campProductarr = [];
+          
+          let Product = jsonObject['data'];
+
+          if(Product.length > 0){
+            for(var i=0; i < Product.length; i++){
+              campProductarr.push(Product[i].CampProductMapp_CampaignId+'-'+Product[i].Prd_Id);
+            }
+          }
+          props.setCampaign(campProductarr);
+          console.log(props.response.loggedin)
+          if(props.response.loggedin == false){
+
+            Login(AgentSession,campProductarr);
+          }
+          
+          AgentSessionData(AgentSession,campProductarr);
+        });
+  }    
 
  const Logout = () => {
     let CampaignList = props.response.CampaignList;

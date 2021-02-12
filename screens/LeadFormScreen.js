@@ -41,7 +41,7 @@ const backtocall = () => {
 }
 
 useEffect(()=>{
- 
+ console.log('This is progress screen');
  const response = props.response.response;
 
   if('ProgressAction' in response && response.ProgressAction == "ON-CALL")
@@ -49,7 +49,7 @@ useEffect(()=>{
     setMobile(response.AgentExtension);
   }
 
- fetch('http://devcc.digialaya.com/WebServices/getCampaignApi/'+AgentSession.UserId+'/'+AgentSession.EnterpriseId+'/'+AgentSession.SubEnterpriseId, {
+ fetch('http://contactcenter.digialaya.com/WebServices/getCampaignApi/'+AgentSession.UserId+'/'+AgentSession.EnterpriseId+'/'+AgentSession.SubEnterpriseId, {
   method: 'post',
   async : false,
   }).then((response) => {
@@ -70,7 +70,7 @@ useEffect(()=>{
             campoption.push({'label' : Campaign[i].Campaign_Name, 'value' : Campaign[i].Campaign_Id})
           }
           setFetchCampaign(campoption);
-          console.log(fetchCampaign);
+          console.log(Campaign);
         }
 
         if(LeadStatus.length > 0){
@@ -88,7 +88,7 @@ useEffect(()=>{
 },[])
 
 const addLead = (AgentSession) =>{
-  fetch('http://devcc.digialaya.com/WebServices/addLeadsApi', {
+  fetch('http://contactcenter.digialaya.com/WebServices/addLeadsApi', {
         body: JSON.stringify({
             'Lead_LeadStatus' : statusVal,
             'Lead_Campaign' : campaignVal,
